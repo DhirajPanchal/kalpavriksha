@@ -1,6 +1,5 @@
 "use client";
 
-import { TreasuryDealTicket } from "@/business/treasury/types";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,20 +10,31 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { useReactTable } from "@tanstack/react-table";
+import { Table } from "@tanstack/react-table";
 import { ChevronDown } from "lucide-react";
+import { ReactNode } from "react";
 
-/**
- * Grid Toolbar
- */
-export default function GridToolbar(props: {
+interface AdgToolbarProps<T> {
+  grid: Table<T>;
   globalFilter: string;
   setGlobalFilter: (v: string) => void;
-  table: ReturnType<typeof useReactTable<TreasuryDealTicket>>;
-}) {
-  const { globalFilter, setGlobalFilter, table } = props;
+  injectLeft?: ReactNode;
+  injectCenter?: ReactNode;
+  injectRight?: ReactNode;
+}
+
+export default function AdgToolbar<T>(props: AdgToolbarProps<T>) {
+  const {
+    grid,
+    globalFilter,
+    setGlobalFilter,
+    injectLeft,
+    injectCenter,
+    injectRight,
+  } = props;  
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-2">
+      {injectLeft}
       <div className="flex items-center gap-2">
         <Input
           placeholder="Filter across columns..."
@@ -33,15 +43,14 @@ export default function GridToolbar(props: {
           className="h-9 w-[240px]"
         />
       </div>
-
+      {injectCenter}
       <div className="flex items-center gap-2">
-        {/* Page size */}
         <div className="flex items-center gap-2 text-sm">
           <span className="text-muted-foreground">Rows:</span>
           <select
             className="h-9 rounded-md border bg-background px-2"
-            value={table.getState().pagination.pageSize}
-            onChange={(e) => table.setPageSize(Number(e.target.value))}
+            value={grid.getState().pagination.pageSize}
+            onChange={(e) => grid.setPageSize(Number(e.target.value))}
           >
             {[10, 20, 50, 100].map((ps) => (
               <option key={ps} value={ps}>
@@ -50,8 +59,6 @@ export default function GridToolbar(props: {
             ))}
           </select>
         </div>
-
-        {/* Column toggle */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm" className="h-9">
@@ -61,7 +68,7 @@ export default function GridToolbar(props: {
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {table
+            {grid
               .getAllLeafColumns()
               .filter((c) => c.getCanHide())
               .map((column) => {
@@ -79,6 +86,7 @@ export default function GridToolbar(props: {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      {injectRight}
     </div>
   );
 }

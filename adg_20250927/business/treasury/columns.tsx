@@ -16,7 +16,6 @@ import { MoreHorizontal } from "lucide-react";
 import { fmtDate, fmtNum, statusClass } from "./helper";
 import { TreasuryDealTicket } from "./types";
 
-
 /**
  * Column Definitions
  */

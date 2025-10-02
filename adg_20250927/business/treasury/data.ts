@@ -4,7 +4,7 @@ import { TreasuryDealTicket } from "./types";
  * Sample Data — 20 Treasury Deal Tickets (synthetic)
  */
 export const sampleTreasuryDeals: TreasuryDealTicket[] = [
-  { dealId: "TD001", product: "Spot", side: "Buy", ccyPair: "USD/INR", notional: 2000000, rate: 83.15, tradeDate: "2025-09-25", valueDate: "2025-09-27", desk: "FX Desk", legalEntity: "HSBC Bank India", status: "Booked", region: "APAC", site: "Mumbai" },
+  { dealId: "TD001", product: "Spot", side: "Buy", ccyPair: "USD/INR", notional: 2000000, rate: 83.15, tradeDate: "2025-09-25", valueDate: "2025-09-27", desk: "FX Desk", legalEntity: "HSBC Bank India", status: "Booked", region: "APAC", site: "Mumbai " },
   { dealId: "TD002", product: "Forward", side: "Sell", ccyPair: "EUR/USD", notional: 1500000, rate: 1.0865, tradeDate: "2025-09-24", valueDate: "2025-12-24", desk: "FX Desk", legalEntity: "HSBC Bank PLC", status: "Booked", region: "EMEA", site: "London" },
   { dealId: "TD003", product: "Deposit", side: "Buy", ccyPair: "USD", notional: 3000000, rate: 4.25, tradeDate: "2025-09-23", valueDate: "2025-09-30", desk: "MM Desk", legalEntity: "HSBC Bank USA", status: "Settled", region: "AMER", site: "New York" },
   { dealId: "TD004", product: "Swap", side: "Sell", ccyPair: "GBP/USD", notional: 2500000, rate: 1.2732, tradeDate: "2025-09-22", valueDate: "2025-09-29", desk: "IR Desk", legalEntity: "HSBC Bank PLC", status: "Amended", region: "EMEA", site: "London" },
