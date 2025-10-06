@@ -6,13 +6,10 @@ import { Column, Row, Table } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { ColumnFilterMeta } from "./adg-types";
 
-export type FilterKind = "text" | "number" | "enum" | "date";
-export interface ColumnFilterMeta {
-  kind: FilterKind;
-  enumValues?: string[];
-  placeholder?: string;
-}
+
+
 
 export function buildFilterFns<T>() {
   return {
