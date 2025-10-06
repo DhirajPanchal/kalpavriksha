@@ -1,16 +1,16 @@
-
 "use client";
 
 import * as React from "react";
 import { Table, flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { cn } from "@/lib/utils";
-import { FilterButton } from "./adg-filters";
+
+import AdgHeaderRow from "@/components/adg-v2/adg-header";
 
 interface AdgGridVirtualProps<T> {
   table: Table<T>;
-  heightPx?: number;          // viewport height
-  rowHeightPx: number;        // estimated row height from density
+  heightPx?: number; // viewport height
+  rowHeightPx: number; // estimated row height from density
 }
 
 /**
@@ -34,49 +34,16 @@ export default function AdgGridVirtual<T>(props: AdgGridVirtualProps<T>) {
   const tableWidth = table.getTotalSize(); // sum of sizes -> guarantees header/body share exact width
 
   return (
-    <div ref={parentRef} className="relative overflow-auto" style={{ maxHeight: heightPx }}>
-      <table className="table-fixed border-separate border-spacing-0 w-max" style={{ width: tableWidth }}>
-        <thead
-          className="bg-card"
-          style={{ position: "sticky", top: 0, zIndex: 40 }}
-        >
-          {table.getHeaderGroups().map((hg) => (
-            <tr key={hg.id}>
-              {hg.headers.map((header) => (
-                <th
-                  key={header.id}
-                  style={{
-                    width: header.getSize(),
-                    position: header.column.getIsPinned() ? ("sticky" as const) : undefined,
-                    left: header.column.getIsPinned() ? header.column.getStart("left") : undefined,
-                    zIndex: header.column.getIsPinned() ? 50 : undefined,
-                    background: header.column.getIsPinned() ? "var(--background)" : undefined,
-                  }}
-                  className={cn("h-14 font-semibold align-middle border-b")}
-                >
-                  {header.isPlaceholder ? null : (
-                    <div
-                      className={header.column.getCanSort() ? "cursor-pointer select-none" : undefined}
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {{ asc: " ▲", desc: " ▼" }[header.column.getIsSorted() as string] ?? null}
-                      {/* Filter button if meta.filter exists */}
-                      {(() => {
-                        const m: any = header.column.columnDef.meta;
-                        return m?.filter ? (
-                          <span className="ml-1 inline-block align-middle">
-                            <FilterButton table={table} column={header.column} meta={m.filter} />
-                          </span>
-                        ) : null;
-                      })()}
-                    </div>
-                  )}
-                </th>
-              ))}
-            </tr>
-          ))}
-        </thead>
+    <div
+      ref={parentRef}
+      className="relative overflow-auto"
+      style={{ maxHeight: heightPx }}
+    >
+      <table
+        className="table-fixed border-separate border-spacing-0 w-max"
+        style={{ width: tableWidth }}
+      >
+        <AdgHeaderRow table={table} headerHeightPx={56} />
 
         {/* Virtual body */}
         <tbody
@@ -109,10 +76,16 @@ export default function AdgGridVirtual<T>(props: AdgGridVirtualProps<T>) {
                     key={cell.id}
                     style={{
                       width: cell.column.getSize(),
-                      position: cell.column.getIsPinned() ? ("sticky" as const) : undefined,
-                      left: cell.column.getIsPinned() ? cell.column.getStart("left") : undefined,
+                      position: cell.column.getIsPinned()
+                        ? ("sticky" as const)
+                        : undefined,
+                      left: cell.column.getIsPinned()
+                        ? cell.column.getStart("left")
+                        : undefined,
                       zIndex: cell.column.getIsPinned() ? 30 : undefined,
-                      background: cell.column.getIsPinned() ? "var(--background)" : undefined,
+                      background: cell.column.getIsPinned()
+                        ? "var(--background)"
+                        : undefined,
                     }}
                     className="p-2 text-sm text-right border-b"
                   >
