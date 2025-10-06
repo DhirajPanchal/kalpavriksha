@@ -1,29 +1,35 @@
+
 "use client";
 
 import * as React from "react";
 import { Table, flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { cn } from "@/lib/utils";
+import AdgHeaderRow from "./adg-header";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
-import AdgHeaderRow from "@/components/adg-v2/adg-header";
+type Align = "left" | "center" | "right";
 
 interface AdgGridVirtualProps<T> {
   table: Table<T>;
-  heightPx?: number; // viewport height
-  rowHeightPx: number; // estimated row height from density
+  heightPx?: number;
+  rowHeightPx: number;
+  headerHeightPx?: number;
+  defaultCellWrap?: string; // "single" | "multi"
 }
 
-/**
- * Virtualized body with a single TABLE element to keep column widths aligned.
- * - Sticky THEAD with high z-index so rows never paint over it
- * - Left-pin only via position: sticky left + high z-index and background
- * - Widths come from tanstack sizes; table uses table-fixed + w-max so a real h-scroll appears
- */
-export default function AdgGridVirtual<T>(props: AdgGridVirtualProps<T>) {
-  const { table, heightPx = 556, rowHeightPx } = props;
+export default function AdgGridVirtual<T>({
+  table,
+  heightPx = 556,
+  rowHeightPx,
+  headerHeightPx = 56,
+  defaultCellWrap = "single",
+}: AdgGridVirtualProps<T>) {
   const parentRef = React.useRef<HTMLDivElement>(null);
+  const [mounted, setMounted] = React.useState(false);
+  React.useEffect(() => setMounted(true), []);
 
   const rows = table.getRowModel().rows;
+
   const rowVirtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
@@ -31,28 +37,35 @@ export default function AdgGridVirtual<T>(props: AdgGridVirtualProps<T>) {
     overscan: 8,
   });
 
-  const tableWidth = table.getTotalSize(); // sum of sizes -> guarantees header/body share exact width
+  const tableWidth = table.getTotalSize();
+
+  const alignClass = (a?: Align) =>
+    a === "left" ? "text-left" : a === "right" ? "text-right" : "text-center";
+
+  const wrapClass = (wrap?: string) =>
+    wrap === "multi" ? "whitespace-normal break-words" : "truncate whitespace-nowrap";
+
+  const defaultAlignForType = (typ?: string): Align => {
+    switch (typ) {
+      case "number":
+        return "right";
+      case "enum":
+      case "date":
+        return "center";
+      default:
+        return "left";
+    }
+  };
+
+  const initialHeight = rows.length * rowHeightPx;
+  const totalSize = mounted ? rowVirtualizer.getTotalSize() : initialHeight;
 
   return (
-    <div
-      ref={parentRef}
-      className="relative overflow-auto"
-      style={{ maxHeight: heightPx }}
-    >
-      <table
-        className="table-fixed border-separate border-spacing-0 w-max"
-        style={{ width: tableWidth }}
-      >
-        <AdgHeaderRow table={table} headerHeightPx={56} />
+    <div ref={parentRef} className="relative overflow-auto" style={{ maxHeight: heightPx }}>
+      <table className="table-fixed border-separate border-spacing-0 w-max" style={{ width: tableWidth }}>
+        <AdgHeaderRow table={table} headerHeightPx={headerHeightPx} defaultHeaderWrap={defaultCellWrap} />
 
-        {/* Virtual body */}
-        <tbody
-          style={{
-            position: "relative",
-            display: "block",
-            height: rowVirtualizer.getTotalSize(),
-          }}
-        >
+        <tbody suppressHydrationWarning style={{ position: "relative", display: "block", height: totalSize }}>
           {rowVirtualizer.getVirtualItems().map((vi) => {
             const row = rows[vi.index];
             return (
@@ -66,32 +79,52 @@ export default function AdgGridVirtual<T>(props: AdgGridVirtualProps<T>) {
                   display: "table",
                   width: tableWidth,
                   tableLayout: "fixed",
+                  height: rowHeightPx,
                   zIndex: 0,
                   willChange: "transform",
                 }}
                 className="group"
               >
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    key={cell.id}
-                    style={{
-                      width: cell.column.getSize(),
-                      position: cell.column.getIsPinned()
-                        ? ("sticky" as const)
-                        : undefined,
-                      left: cell.column.getIsPinned()
-                        ? cell.column.getStart("left")
-                        : undefined,
-                      zIndex: cell.column.getIsPinned() ? 30 : undefined,
-                      background: cell.column.getIsPinned()
-                        ? "var(--background)"
-                        : undefined,
-                    }}
-                    className="p-2 text-sm text-right border-b"
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+                {row.getVisibleCells().map((cell) => {
+                  const meta: any = cell.column.columnDef.meta ?? {};
+                  const align: Align = meta.align ?? defaultAlignForType(meta.type);
+                  const wrap: string = meta.wrap ?? defaultCellWrap;
+
+                  const rawValue = row.getValue(cell.column.id) as any;
+                  const text = typeof rawValue === "string" ? rawValue : String(rawValue ?? "");
+
+                  const content = (
+                    <div className={wrapClass(wrap)} style={{ height: rowHeightPx, lineHeight: `${rowHeightPx - 10}px` }}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </div>
+                  );
+
+                  return (
+                    <td
+                      key={cell.id}
+                      style={{
+                        width: cell.column.getSize(),
+                        position: cell.column.getIsPinned() ? ("sticky" as const) : undefined,
+                        left: cell.column.getIsPinned() ? cell.column.getStart("left") : undefined,
+                        zIndex: cell.column.getIsPinned() ? 30 : undefined,
+                        background: cell.column.getIsPinned() ? "var(--adg-pin-bg)" : undefined,
+                        height: rowHeightPx,
+                      }}
+                      className={alignClass(align)}
+                    >
+                      {wrap === "single" ? (
+                        <TooltipProvider>
+                          <Tooltip delayDuration={300}>
+                            <TooltipTrigger asChild>{content}</TooltipTrigger>
+                            <TooltipContent>{text}</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : (
+                        content
+                      )}
+                    </td>
+                  );
+                })}
               </tr>
             );
           })}

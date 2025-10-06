@@ -1,69 +1,30 @@
 
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-import { Table } from "@tanstack/react-table";
-import {
-  Eye,
-  EyeOff,
-  GripVertical,
-  Pin,
-  PinOff,
-} from "lucide-react";
 import * as React from "react";
-import type { Density, GridSettingsSnapshot, WidthKey } from "./adg-types";
+import { Table } from "@tanstack/react-table";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { Eye, EyeOff, GripVertical, Pin, PinOff } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import type { GridSettingsSnapshot } from "./adg-types";
 
-// DnD Kit
-import {
-  closestCenter,
-  DndContext,
-  DragEndEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+type Density = "compact" | "medium" | "large";
+type WidthKey = "S" | "M" | "L";
+type PinKey = "left" | false;
+
+import { DndContext, closestCenter, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
-function SortableRow({
-  id,
-  children,
-  disabled,
-}: {
-  id: string;
-  children: React.ReactNode;
-  disabled?: boolean;
-}) {
-  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id, disabled});
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.6 : 1,
-  };
+function SortableRow({ id, children }:{ id: string; children: React.ReactNode }) {
+  const {attributes, listeners, setNodeRef, transform, transition, isDragging} = useSortable({id});
+  const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.6 : 1 };
   return (
     <li ref={setNodeRef} style={style} className="rounded-lg border bg-card">
       <div className="flex items-center gap-3 p-2">{children}
-        <div className="ml-1 cursor-grab active:cursor-grabbing text-muted-foreground"
-             {...attributes} {...listeners} aria-label="Drag handle">
+        <div className="ml-1 cursor-grab active:cursor-grabbing text-muted-foreground" {...attributes} {...listeners}>
           <GripVertical className="h-4 w-4" />
         </div>
       </div>
@@ -72,34 +33,11 @@ function SortableRow({
 }
 
 export default function AdgSettingsDnd<T>({
-  open,
-  onOpenChange,
-  table,
-  draft,
-  setDraft,
-  onApply,
-}: {
-  open: boolean;
-  onOpenChange: (v: boolean) => void;
-  table: Table<T>;
-  draft: GridSettingsSnapshot;
-  setDraft: (s: GridSettingsSnapshot) => void;
-  onApply: () => void;
-}) {
+  open, onOpenChange, table, draft, setDraft, onApply,
+}:{ open: boolean; onOpenChange: (v: boolean) => void; table: Table<T>; draft: GridSettingsSnapshot; setDraft: (s: GridSettingsSnapshot) => void; onApply: () => void; }) {
   const sensors = useSensors(useSensor(PointerSensor, {activationConstraint: {distance: 6}}));
-
-  const setAllVisibility = (v: boolean) =>
-    setDraft({
-      ...draft,
-      columns: draft.columns.map((c) => ({ ...c, visible: v })),
-    });
-
-  const unpinAll = () =>
-    setDraft({
-      ...draft,
-      columns: draft.columns.map((c) => ({ ...c, pin: false })),
-    });
-
+  const setAllVisibility = (v: boolean) => setDraft({ ...draft, columns: draft.columns.map((c) => ({ ...c, visible: v })) });
+  const unpinAll = () => setDraft({ ...draft, columns: draft.columns.map((c) => ({ ...c, pin: false as PinKey })) });
   const headerLabel = (id: string) => table.getColumn(id)?.columnDef.header;
 
   const onDragEnd = (event: DragEndEvent) => {
@@ -111,44 +49,52 @@ export default function AdgSettingsDnd<T>({
     if (oldIndex === -1 || newIndex === -1) return;
     const [moved] = items.splice(oldIndex, 1);
     items.splice(newIndex, 0, moved);
-    // Re-number order
     items.forEach((c, i) => c.order = i);
     setDraft({ ...draft, columns: items });
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[720px]">
-        <DialogHeader>
-          <DialogTitle>Manage Columns</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[860px]">
+        <DialogHeader><DialogTitle>Manage Columns</DialogTitle></DialogHeader>
 
-        {/* Density & palette */}
-        <div className="flex flex-wrap gap-3 items-center mb-2">
+        <div className="flex flex-wrap items-center gap-3 mb-3">
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Row height</span>
             <div className="flex rounded-md border overflow-hidden">
               {(["compact","medium","large"] as Density[]).map((d) => (
-                <button key={d}
-                  className={cn("px-3 py-1 text-sm",
-                    draft.density===d? "bg-primary text-primary-foreground":"bg-background hover:bg-accent")}
-                  onClick={() => setDraft({ ...draft, density: d })}
-                >{d}</button>
+                <button key={d} className={cn("px-3 py-1 text-sm", draft.density===d? "bg-primary text-primary-foreground":"bg-background hover:bg-accent")} onClick={() => setDraft({ ...draft, density: d })}>{d}</button>
               ))}
             </div>
           </div>
+
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">Palette</span>
             <div className="flex rounded-md border overflow-hidden">
-              {["blue","gray","yellow"].map((p) => (
-                <button key={p}
-                  className={cn("px-3 py-1 text-sm capitalize",
-                    draft.palette===p? "bg-primary text-primary-foreground":"bg-background hover:bg-accent")}
-                  onClick={() => setDraft({ ...draft, palette: p as any })}
-                >{p}</button>
+              {(["blue","gray"] as const).map((p) => (
+                <button key={p} className={cn("px-3 py-1 text-sm capitalize", draft.palette===p? "bg-primary text-primary-foreground":"bg-background hover:bg-accent")} onClick={() => setDraft({ ...draft, palette: p })}>{p}</button>
               ))}
             </div>
           </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Header wrap</span>
+            <div className="flex rounded-md border overflow-hidden">
+              {(["single","multi"] as const).map((w) => (
+                <button key={w} className={cn("px-3 py-1 text-sm capitalize", (draft.headerWrap ?? "single")===w? "bg-primary text-primary-foreground":"bg-background hover:bg-accent")} onClick={() => setDraft({ ...draft, headerWrap: w })}>{w}</button>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Cell wrap</span>
+            <div className="flex rounded-md border overflow-hidden">
+              {(["single","multi"] as const).map((w) => (
+                <button key={w} className={cn("px-3 py-1 text-sm capitalize", (draft.wrap ?? "single")===w? "bg-primary text-primary-foreground":"bg-background hover:bg-accent")} onClick={() => setDraft({ ...draft, wrap: w })}>{w}</button>
+              ))}
+            </div>
+          </div>
+
           <div className="ml-auto flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setAllVisibility(true)}>Show all</Button>
             <Button variant="ghost" size="sm" onClick={unpinAll}>Unfreeze all</Button>
@@ -167,45 +113,24 @@ export default function AdgSettingsDnd<T>({
                       </div>
                     </div>
 
-                    {/* Show/Hide */}
-                    <Button
-                      variant={c.visible ? "secondary" : "outline"}
-                      size="icon"
-                      title={c.visible ? "Visible" : "Hidden"}
-                      onClick={() =>
-                        setDraft({
-                          ...draft,
-                          columns: draft.columns.map((x) =>
-                            x.id === c.id ? { ...x, visible: !x.visible } : x
-                          ),
-                        })
-                      }
-                    >
+                    <Button variant={c.visible ? "secondary" : "outline"} size="icon" title={c.visible ? "Visible" : "Hidden"}
+                      onClick={() => setDraft({ ...draft, columns: draft.columns.map((x) => x.id === c.id ? { ...x, visible: !x.visible } : x) })}>
                       {c.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                     </Button>
 
-                    {/* Freeze */}
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon" title="Freeze/Pin">
-                          {c.pin ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}
-                        </Button>
-                      </DropdownMenuTrigger>
+                      <DropdownMenuTrigger asChild><Button variant="outline" size="icon" title="Freeze/Pin">{c.pin ? <Pin className="h-4 w-4" /> : <PinOff className="h-4 w-4" />}</Button></DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Pin</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => setDraft({ ...draft, columns: draft.columns.map((x)=> x.id===c.id?{...x, pin:"left"}:x) })}>Left</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => setDraft({ ...draft, columns: draft.columns.map((x)=> x.id===c.id?{...x, pin:false}:x) })}>None</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDraft({ ...draft, columns: draft.columns.map((x)=> x.id===c.id?{...x, pin:"left" as PinKey}:x) })}>Left</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setDraft({ ...draft, columns: draft.columns.map((x)=> x.id===c.id?{...x, pin:false as PinKey}:x) })}>None</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* Width */}
                     <div className="flex items-center gap-1 rounded-md border p-1">
                       {(["S","M","L"] as WidthKey[]).map((w)=> (
-                        <button key={w}
-                          className={cn("h-8 w-8 text-xs rounded",
-                            c.widthKey===w? "bg-primary text-primary-foreground":"hover:bg-accent")}
-                          onClick={()=> setDraft({ ...draft, columns: draft.columns.map(x=> x.id===c.id?{...x, widthKey:w}:x) })}
-                        >{w}</button>
+                        <button key={w} className={cn("h-8 w-8 text-xs rounded", c.widthKey===w? "bg-primary text-primary-foreground":"hover:bg-accent")}
+                          onClick={()=> setDraft({ ...draft, columns: draft.columns.map(x=> x.id===c.id?{...x, widthKey:w}:x) })}>{w}</button>
                       ))}
                     </div>
                   </SortableRow>

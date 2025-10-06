@@ -46,7 +46,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       cell: ({ row }) => (
         <span className="font-mono">{fmtNum(row.original.notional)}</span>
       ),
-       meta: { label: "Notional", widthKey: "M", filter: { kind: "number" } }
+       meta: { label: "Notional", widthKey: "M", filter: { kind: "number" },  }
     },
     {
       accessorKey: "rate",
@@ -79,7 +79,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
     },
     {
       accessorKey: "legalEntity",
-      header: "Legal Entity",
+      header: "Legal Entity AND AND AND AND AND AND AND AND END",
       size: WIDTH_MAP.L,
        meta: { label: "Legal Entity", widthKey: "L", filter: { kind: "text", placeholder: "contains..." } }
     },
