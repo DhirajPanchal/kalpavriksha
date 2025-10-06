@@ -1,4 +1,4 @@
-import { Density, WidthKey } from "@/components/adg/adg-types";
+import { Density, WidthKey } from "@/components/adg-v1/adg-types";
 
 export const WIDTH_MAP: Record<WidthKey, number> = { S: 120, M: 180, L: 240 };
 

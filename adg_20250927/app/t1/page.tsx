@@ -1,8 +1,8 @@
 "use client";
 
-import { treasuryColumns } from "@/business/treasury/columns";
-import { sampleTreasuryDeals } from "@/business/treasury/data";
-import AdgDataGrid from "@/components/adg/adg-datagrid";
+import { treasuryColumns } from "@/business/t1/columns";
+import { sampleTreasuryDeals } from "@/business/t1/data";
+import AdgDataGridv1 from "@/components/adg-v1/adg-datagrid-v1";
 import { LucideLandmark } from "lucide-react";
 
 export default function Page() {
@@ -17,7 +17,7 @@ export default function Page() {
 
   return (
     <div className="p-4">
-      <AdgDataGrid
+      <AdgDataGridv1
         columns={treasuryColumns()}
         data={sampleTreasuryDeals}
         initialSettings={{ density: "medium", palette: "blue" }}

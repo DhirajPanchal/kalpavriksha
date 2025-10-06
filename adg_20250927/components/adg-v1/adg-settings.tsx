@@ -3,7 +3,7 @@ import {
   Density,
   GridSettingsSnapshot,
   WidthKey,
-} from "@/components/adg/adg-types";
+} from "@/components/adg-v1/adg-types";
 import {
   Dialog,
   DialogContent,

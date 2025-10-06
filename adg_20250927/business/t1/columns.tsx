@@ -1,6 +1,6 @@
-import { AdgColumnDef } from "@/components/adg/adg-types";
+import { AdgColumnDef } from "@/components/adg-v1/adg-types";
 import { TreasuryDealTicket } from "./types";
-import { WIDTH_MAP } from "@/components/adg/adg-constants";
+import { WIDTH_MAP } from "@/components/adg-v1/adg-constants";
 import { Badge } from "@/components/ui/badge";
 import { capsuleClass, fmtDate, fmtNum, sideClass, statusClass } from "./helper";
 import { cn } from "@/lib/utils";

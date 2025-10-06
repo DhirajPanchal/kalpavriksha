@@ -39,7 +39,7 @@ interface AdgDataGridProps<T> {
   config?: AdgDataGridConfig;
 }
 
-export default function AdgDataGrid<T>({
+export default function AdgDataGridv1<T>({
   data,
   columns,
   initialSettings,
