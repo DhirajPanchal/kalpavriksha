@@ -10,15 +10,15 @@ import {
 } from "lucide-react";
 
 interface AdgPaginationProps<T> {
-  grid: Table<T>;
+  table: Table<T>;
 }
 
 export default function AdgPagination<T>(props: AdgPaginationProps<T>) {
-  const { grid } = props;
-  const page = grid.getState().pagination.pageIndex + 1;
-  const pageCount = grid.getPageCount();
-  const totalRows = grid.getPrePaginationRowModel().rows.length;
-  const pageSize = grid.getState().pagination.pageSize;
+  const { table } = props;
+  const page = table.getState().pagination.pageIndex + 1;
+  const pageCount = table.getPageCount();
+  const totalRows = table.getPrePaginationRowModel().rows.length;
+  const pageSize = table.getState().pagination.pageSize;
   const first = (page - 1) * pageSize + 1;
   const last = Math.min(page * pageSize, totalRows);
 
@@ -31,16 +31,16 @@ export default function AdgPagination<T>(props: AdgPaginationProps<T>) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => grid.setPageIndex(0)}
-          disabled={!grid.getCanPreviousPage()}
+          onClick={() => table.setPageIndex(0)}
+          disabled={!table.getCanPreviousPage()}
         >
           <LucideChevronFirst />
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => grid.previousPage()}
-          disabled={!grid.getCanPreviousPage()}
+          onClick={() => table.previousPage()}
+          disabled={!table.getCanPreviousPage()}
         >
           <LucideChevronLeft />
         </Button>
@@ -50,8 +50,8 @@ export default function AdgPagination<T>(props: AdgPaginationProps<T>) {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => grid.nextPage()}
-          disabled={!grid.getCanNextPage()}
+          onClick={() => table.nextPage()}
+          disabled={!table.getCanNextPage()}
         >
           <LucideChevronRight />
         </Button>
@@ -59,9 +59,9 @@ export default function AdgPagination<T>(props: AdgPaginationProps<T>) {
           variant="outline"
           size="sm"
           onClick={() =>
-            grid.setPageIndex(Math.max(grid.getPageCount() - 1, 0))
+            table.setPageIndex(Math.max(table.getPageCount() - 1, 0))
           }
-          disabled={!grid.getCanNextPage()}
+          disabled={!table.getCanNextPage()}
         >
           <LucideChevronLast />
         </Button>

@@ -1,23 +1,14 @@
 "use client";
 
-import { treasuryDealColumns } from "@/business/treasury/columns";
-import { sampleTreasuryDeals } from "@/business/treasury/data";
-import { TreasuryDealTicket } from "@/business/treasury/types";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   ColumnDef,
   ColumnFiltersState,
+  ColumnOrderState,
   ColumnPinningState,
+  ColumnSizingState,
+  Row,
   SortingState,
   VisibilityState,
-  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
@@ -26,9 +17,13 @@ import {
 } from "@tanstack/react-table";
 import * as React from "react";
 import { ReactNode } from "react";
-import AdgToolbar from "./adg-toolbar";
-import AdgPagination from "./adg-pagination";
 import AdgGrid from "./adg-grid";
+import AdgPagination from "./adg-pagination";
+import AdgToolbar from "./adg-toolbar";
+import AdgSettings from "./adg-settings";
+import { AdgColumnDef, GridSettingsSnapshot } from "./adg-types";
+import { applySettingsToTable, deriveInitialSettings } from "./adg-auxiliary";
+import { DENSITY_ROW_CLASS } from "./adg-constants";
 
 interface AdgDataGridConfig {
   toolbarLeft?: ReactNode;
@@ -38,15 +33,20 @@ interface AdgDataGridConfig {
 
 interface AdgDataGridProps<T> {
   data: T[];
-  columns: ColumnDef<T>[];
+  columns: AdgColumnDef<T>[];
+  initialSettings?: Partial<GridSettingsSnapshot>;
+  onSettingsChange?: (s: GridSettingsSnapshot) => void;
   config?: AdgDataGridConfig;
 }
 
 export default function AdgDataGrid<T>({
   data,
   columns,
+  initialSettings,
+  onSettingsChange,
   config,
 }: AdgDataGridProps<T>) {
+  // table states
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
@@ -56,13 +56,58 @@ export default function AdgDataGrid<T>({
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
   const [columnPinning, setColumnPinning] = React.useState<ColumnPinningState>({
-    left: ["dealId", "product", "ccyPair", "notional"],
-    right: ["actions"],
+    left: [],
+    right: [],
   });
+  const [columnSizing, setColumnSizing] = React.useState<ColumnSizingState>({});
+  const [columnOrder, setColumnOrder] = React.useState<ColumnOrderState>([]);
 
-  const grid = useReactTable({
+  // settings state (draft in dialog)
+  const baseSettings: GridSettingsSnapshot = React.useMemo(
+    () => ({
+      columns: deriveInitialSettings(columns),
+      density: initialSettings?.density ?? "medium",
+      palette: initialSettings?.palette ?? "blue",
+    }),
+    [columns]
+  );
+
+  const [settings, setSettings] =
+    React.useState<GridSettingsSnapshot>(baseSettings);
+  const [draft, setDraft] = React.useState<GridSettingsSnapshot>(settings);
+  const [openSettings, setOpenSettings] = React.useState(false);
+
+  const globalFilterFn = (
+    row: Row<T>,
+    _columnId: string,
+    filterValue: string
+  ) => {
+    if (!filterValue) return true;
+    const v = filterValue.toLowerCase();
+    return [
+      "dealId",
+      "product",
+      "side",
+      "ccyPair",
+      "desk",
+      "legalEntity",
+      "region",
+      "site",
+      "status",
+    ].some((k) =>
+      String(row.original[k as keyof T])
+        .toLowerCase()
+        .includes(v)
+    );
+  };
+
+  const table = useReactTable({
     data,
-    columns: columns,
+    //columns: columns.map((c, i) => ({ ...c, id: (c.id as string) || (c.accessorKey as string) || `col_${i}` })),
+    columns: columns.map((c, i) => ({
+      ...c,
+      id: (c.id as string) || `col_${i}`,
+    })),
     state: {
       sorting,
       columnFilters,
@@ -70,6 +115,8 @@ export default function AdgDataGrid<T>({
       rowSelection,
       globalFilter,
       columnPinning,
+      columnSizing,
+      columnOrder,
     },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -77,26 +124,9 @@ export default function AdgDataGrid<T>({
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     onColumnPinningChange: setColumnPinning,
-    globalFilterFn: (row, _columnId, filterValue: string) => {
-      if (!filterValue) return true;
-      const v = filterValue.toLowerCase();
-      // Simple contains across key fields
-      return [
-        "dealId",
-        "product",
-        "side",
-        "ccyPair",
-        "desk",
-        "legalEntity",
-        "region",
-        "site",
-        "status",
-      ].some((k) =>
-        String(row.original[k as keyof T])
-          .toLowerCase()
-          .includes(v)
-      );
-    },
+    onColumnSizingChange: setColumnSizing,
+    onColumnOrderChange: setColumnOrder,
+    columnResizeMode: "onChange",
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -105,17 +135,42 @@ export default function AdgDataGrid<T>({
       pagination: { pageIndex: 0, pageSize: 10 },
     },
     enableRowSelection: true,
-    debugTable: false,
+    globalFilterFn: globalFilterFn,
   });
+
+  // Apply current settings to the table on mount & when settings change
+  React.useEffect(() => {
+    applySettingsToTable(table, settings);
+    // derive pinning arrays from settings
+    const left = settings.columns
+      .filter((c) => c.pin === "left")
+      .sort((a, b) => a.order - b.order)
+      .map((c) => c.id);
+    const right = settings.columns
+      .filter((c) => c.pin === "right")
+      .sort((a, b) => a.order - b.order)
+      .map((c) => c.id);
+    setColumnPinning({ left, right });
+    // let parent know
+    onSettingsChange?.(settings);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(settings)]);
+
+  const paletteClass =
+    settings.palette === "blue"
+      ? "[--adg-head:bg:theme(colors.blue.50)] dark:[--adg-head:bg:theme(colors.blue.950)]"
+      : "[--adg-head:bg:theme(colors.gray.50)] dark:[--adg-head:bg:theme(colors.gray.900)]";
+
+  const densityRow = DENSITY_ROW_CLASS[settings.density];
 
   return (
     <div className="w-full">
-
       <div className="rounded-xl border bg-card text-card-foreground shadow-sm">
-
         {/* Toolbar */}
         <AdgToolbar
-          grid={grid}
+          table={table}
+          openSettings={openSettings}
+          setOpenSettings={setOpenSettings}
           globalFilter={globalFilter}
           setGlobalFilter={setGlobalFilter}
           injectLeft={config?.toolbarLeft}
@@ -123,12 +178,26 @@ export default function AdgDataGrid<T>({
           injectRight={config?.toolbarRight}
         />
 
-        {/* Table */}
-        <AdgGrid grid={grid}/>
+        <AdgSettings
+          open={openSettings}
+          onOpenChange={(v) => {
+            setOpenSettings(v);
+            if (!v) setDraft(settings);
+          }}
+          table={table}
+          draft={draft}
+          setDraft={setDraft}
+          onApply={() => {
+            setSettings(draft);
+            setOpenSettings(false);
+          }}
+        />
 
+        {/* Table */}
+        <AdgGrid table={table} />
 
         {/* Pagination */}
-        <AdgPagination grid={grid} />
+        <AdgPagination table={table} />
       </div>
     </div>
   );

@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 import { flexRender, Table } from "@tanstack/react-table";
 
 interface AdgGridProps<T> {
-  grid: Table<T>;
+  table: Table<T>;
 }
 
 export default function AdgGrid<T>(props: AdgGridProps<T>) {
-  const { grid } = props;
+  const { table } = props;
 
   const headStyle = (column: string) => {
     let compose: string = "bg-gray-100 dark:bg-gray-900";
@@ -25,7 +25,7 @@ export default function AdgGrid<T>(props: AdgGridProps<T>) {
     <div className="relative overflow-auto max-h-[556px]">
       <table className="w-full border-separate border-spacing-0">
         <thead className="sticky top-0 z-10 bg-card">
-          {grid.getHeaderGroups().map((hg) => (
+          {table.getHeaderGroups().map((hg) => (
             <tr key={hg.id}>
               {hg.headers.map((header) => (
                 <th
@@ -48,8 +48,8 @@ export default function AdgGrid<T>(props: AdgGridProps<T>) {
           ))}
         </thead>
         <tbody>
-          {grid.getRowModel().rows.length ? (
-            grid.getRowModel().rows.map((row) => (
+          {table.getRowModel().rows.length ? (
+            table.getRowModel().rows.map((row) => (
               <tr key={row.id} data-state={row.getIsSelected() && "selected"}>
                 {row.getVisibleCells().map((cell) => (
                   <td
@@ -68,7 +68,7 @@ export default function AdgGrid<T>(props: AdgGridProps<T>) {
           ) : (
             <tr>
               <th
-                colSpan={grid.getAllColumns().length}
+                colSpan={table.getAllColumns().length}
                 className="h-24 text-center"
               >
                 No results.

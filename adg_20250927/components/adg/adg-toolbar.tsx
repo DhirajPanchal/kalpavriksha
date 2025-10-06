@@ -11,11 +11,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Table } from "@tanstack/react-table";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Settings } from "lucide-react";
 import { ReactNode } from "react";
 
 interface AdgToolbarProps<T> {
-  grid: Table<T>;
+  table: Table<T>;
+  openSettings: boolean;
+  setOpenSettings: (v: boolean) => void;
   globalFilter: string;
   setGlobalFilter: (v: string) => void;
   injectLeft?: ReactNode;
@@ -25,13 +27,15 @@ interface AdgToolbarProps<T> {
 
 export default function AdgToolbar<T>(props: AdgToolbarProps<T>) {
   const {
-    grid,
+    table,
+    openSettings,
+    setOpenSettings,
     globalFilter,
     setGlobalFilter,
     injectLeft,
     injectCenter,
     injectRight,
-  } = props;  
+  } = props;
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-2">
       {injectLeft}
@@ -49,8 +53,8 @@ export default function AdgToolbar<T>(props: AdgToolbarProps<T>) {
           <span className="text-muted-foreground">Rows:</span>
           <select
             className="h-9 rounded-md border bg-background px-2"
-            value={grid.getState().pagination.pageSize}
-            onChange={(e) => grid.setPageSize(Number(e.target.value))}
+            value={table.getState().pagination.pageSize}
+            onChange={(e) => table.setPageSize(Number(e.target.value))}
           >
             {[10, 20, 50, 100].map((ps) => (
               <option key={ps} value={ps}>
@@ -59,32 +63,13 @@ export default function AdgToolbar<T>(props: AdgToolbarProps<T>) {
             ))}
           </select>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="h-9">
-              Columns <ChevronDown className="ml-1 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {grid
-              .getAllLeafColumns()
-              .filter((c) => c.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(v) => column.toggleVisibility(!!v)}
-                  >
-                    {column.columnDef.header as string}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          variant="outline"
+          className="h-9"
+          onClick={() => setOpenSettings(true)}
+        >
+          <Settings className="h-5 w-5" />
+        </Button>
       </div>
       {injectRight}
     </div>

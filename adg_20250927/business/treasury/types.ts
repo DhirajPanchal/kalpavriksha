@@ -2,14 +2,14 @@ export interface TreasuryDealTicket {
   dealId: string;
   product: "Spot" | "Forward" | "Swap" | "Deposit";
   side: "Buy" | "Sell";
-  ccyPair: string; // for MM Deposit, this can be a single currency like "USD"
+  ccyPair: string;
   notional: number;
-  rate: number; // FX or interest rate
-  tradeDate: string; // ISO date
-  valueDate: string; // ISO date
-  desk: string; // FX Desk | MM Desk | IR Desk
+  rate: number;
+  tradeDate: string;
+  valueDate: string;
+  desk: string;
   legalEntity: string; // HSBC entities
   status: "Booked" | "Amended" | "Settled" | "Cancelled";
-  region: string; // APAC | EMEA | AMER | etc.
-  site: string;   // London | Hong Kong | New York | etc.
+  region: string;
+  site: string;
 }
