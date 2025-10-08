@@ -1,11 +1,15 @@
-
 "use client";
 
 import * as React from "react";
 import { Table, flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import AdgHeaderRow from "./adg-header";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type Align = "left" | "center" | "right";
@@ -43,8 +47,20 @@ export default function AdgGridVirtual<T>({
   const alignClass = (a?: Align) =>
     a === "left" ? "text-left" : a === "right" ? "text-right" : "text-center";
 
+  const textAlignClass = (a?: Align) =>
+    a === "left" ? "text-left" : a === "right" ? "text-right" : "text-center";
+
+  const justifyClass = (a?: Align) =>
+    a === "left"
+      ? "justify-start"
+      : a === "right"
+      ? "justify-end"
+      : "justify-center";
+
   const wrapClass = (wrap?: string) =>
-    wrap === "multi" ? "whitespace-normal break-words" : "truncate whitespace-nowrap";
+    wrap === "multi"
+      ? "whitespace-normal break-words"
+      : "truncate whitespace-nowrap";
 
   const defaultAlignForType = (typ?: string): Align => {
     switch (typ) {
@@ -59,7 +75,8 @@ export default function AdgGridVirtual<T>({
   };
 
   const cellStyle = (index: number) => {
-    let compose: string = index % 2 ? "bg-gray-100 dark:bg-gray-700" : "bg-white dark:bg-gray-600";
+    let compose: string =
+      index % 2 ? "bg-gray-100 dark:bg-gray-700" : "bg-white dark:bg-gray-600";
     return compose;
   };
 
@@ -74,10 +91,20 @@ export default function AdgGridVirtual<T>({
       className="relative overflow-auto"
       style={{ maxHeight: heightPx, isolation: "isolate" }}
     >
-      <table className="table-fixed border-separate border-spacing-0 w-max" style={{ width: tableWidth }}>
-        <AdgHeaderRow table={table} headerHeightPx={headerHeightPx} defaultHeaderWrap={defaultCellWrap} />
+      <table
+        className="table-fixed border-separate border-spacing-0 w-max"
+        style={{ width: tableWidth }}
+      >
+        <AdgHeaderRow
+          table={table}
+          headerHeightPx={headerHeightPx}
+          defaultHeaderWrap={defaultCellWrap}
+        />
 
-        <tbody suppressHydrationWarning style={{ position: "relative", display: "block", height: totalSize }}>
+        <tbody
+          suppressHydrationWarning
+          style={{ position: "relative", display: "block", height: totalSize }}
+        >
           {rowVirtualizer.getVirtualItems().map((vi) => {
             const row = rows[vi.index];
             return (
@@ -99,16 +126,34 @@ export default function AdgGridVirtual<T>({
               >
                 {row.getVisibleCells().map((cell) => {
                   const meta: any = cell.column.columnDef.meta ?? {};
-                  const align: Align = meta.align ?? defaultAlignForType(meta.type);
+                  const align: Align =
+                    meta.align ?? defaultAlignForType(meta.type);
                   const wrap: string = meta.wrap ?? defaultCellWrap;
                   const pinned = cell.column.getIsPinned();
 
                   const rawValue = row.getValue(cell.column.id) as any;
-                  const text = typeof rawValue === "string" ? rawValue : String(rawValue ?? "");
+                  const text =
+                    typeof rawValue === "string"
+                      ? rawValue
+                      : String(rawValue ?? "");
 
                   const content = (
-                    <div className={cn(wrapClass(wrap), cellStyle(row.index))} style={{ height: rowHeightPx, lineHeight: `${rowHeightPx - 10}px` }}>
-                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    <div
+                      className={cn(
+                        "h-full w-full flex items-center", // vertical center
+                        justifyClass(align), // flex-item horizontal
+                        textAlignClass(align), // text-node horizontal
+                        wrapClass(wrap),
+                        cellStyle(row.index)
+                      )}
+                    >
+                      {/* make the “thing” inside a single flex item so justify-* always works */}
+                      <div className="inline-flex items-center max-w-full">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </div>
                     </div>
                   );
 
@@ -126,7 +171,7 @@ export default function AdgGridVirtual<T>({
                           : "var(--background)",
                         height: rowHeightPx,
                       }}
-                      className={cn("relative", alignClass(align))}
+                      className="relative align-middle p-0"
                     >
                       {/* right-edge mask to hide underlying unpinned borders when scrolled left */}
                       {pinned && (
