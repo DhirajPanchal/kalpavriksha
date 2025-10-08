@@ -9,11 +9,12 @@ import { FilterButton } from "./adg-filters-adv";
 type Align = "left" | "center" | "right";
 
 /**
- * Hardened header row:
+ * AdgHeaderRow (pinned seam-hardened)
  * - Header text CENTER by default
  * - Pin-aware layering with higher z-index
  * - Fallback background if CSS vars are missing
  * - Overlay layer defeats host apps that force white backgrounds on <th>
+ * - Right-edge mask hides underlying unpinned column borders on left scroll
  */
 export default function AdgHeaderRow<T>({
   table,
@@ -35,6 +36,7 @@ export default function AdgHeaderRow<T>({
 
   // sensible fallback if var(--adg-head-bg) is not defined by wrapper
   const headBgFallback = "color-mix(in srgb, rgb(156 163 175) 16%, var(--background, white))";
+  const MASK_W = 2; // px width to hide underlying borders/seams
 
   return (
     <thead
@@ -78,6 +80,24 @@ export default function AdgHeaderRow<T>({
                     zIndex: 0,
                   }}
                 />
+
+                {/* right-edge mask to hide underlying unpinned borders when scrolled left */}
+                {pinned && (
+                  <div
+                    aria-hidden
+                    className="pointer-events-none"
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: -MASK_W,
+                      width: MASK_W,
+                      height: "100%",
+                      background: "var(--adg-pin-bg, var(--adg-head-bg, " + headBgFallback + "))",
+                      zIndex: 210, // above this th background
+                    }}
+                  />
+                )}
+
                 {header.isPlaceholder ? null : (
                   <div
                     className="relative grid grid-cols-[1fr_auto] items-center gap-1"

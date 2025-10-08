@@ -66,6 +66,8 @@ export default function AdgGridVirtual<T>({
   const initialHeight = rows.length * rowHeightPx;
   const totalSize = mounted ? rowVirtualizer.getTotalSize() : initialHeight;
 
+  const MASK_W = 2; // px width to hide underlying borders/seams for pinned cells
+
   return (
     <div
       ref={parentRef}
@@ -124,8 +126,25 @@ export default function AdgGridVirtual<T>({
                           : "var(--background)",
                         height: rowHeightPx,
                       }}
-                      className={alignClass(align)}
+                      className={cn("relative", alignClass(align))}
                     >
+                      {/* right-edge mask to hide underlying unpinned borders when scrolled left */}
+                      {pinned && (
+                        <div
+                          aria-hidden
+                          className="pointer-events-none"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            right: -MASK_W,
+                            width: MASK_W,
+                            height: "100%",
+                            background: "inherit",
+                            zIndex: 150, // above cell content, hides any seam
+                          }}
+                        />
+                      )}
+
                       {wrap === "single" ? (
                         <TooltipProvider>
                           <Tooltip delayDuration={300}>
