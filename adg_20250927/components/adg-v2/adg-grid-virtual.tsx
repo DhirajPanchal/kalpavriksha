@@ -6,6 +6,7 @@ import { Table, flexRender } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import AdgHeaderRow from "./adg-header";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 
 type Align = "left" | "center" | "right";
 
@@ -57,11 +58,20 @@ export default function AdgGridVirtual<T>({
     }
   };
 
+  const cellStyle = (index: number) => {
+    let compose: string = index % 2 ? "bg-gray-100 dark:bg-gray-700" : "bg-white dark:bg-gray-600";
+    return compose;
+  };
+
   const initialHeight = rows.length * rowHeightPx;
   const totalSize = mounted ? rowVirtualizer.getTotalSize() : initialHeight;
 
   return (
-    <div ref={parentRef} className="relative overflow-auto" style={{ maxHeight: heightPx }}>
+    <div
+      ref={parentRef}
+      className="relative overflow-auto"
+      style={{ maxHeight: heightPx, isolation: "isolate" }}
+    >
       <table className="table-fixed border-separate border-spacing-0 w-max" style={{ width: tableWidth }}>
         <AdgHeaderRow table={table} headerHeightPx={headerHeightPx} defaultHeaderWrap={defaultCellWrap} />
 
@@ -89,12 +99,13 @@ export default function AdgGridVirtual<T>({
                   const meta: any = cell.column.columnDef.meta ?? {};
                   const align: Align = meta.align ?? defaultAlignForType(meta.type);
                   const wrap: string = meta.wrap ?? defaultCellWrap;
+                  const pinned = cell.column.getIsPinned();
 
                   const rawValue = row.getValue(cell.column.id) as any;
                   const text = typeof rawValue === "string" ? rawValue : String(rawValue ?? "");
 
                   const content = (
-                    <div className={wrapClass(wrap)} style={{ height: rowHeightPx, lineHeight: `${rowHeightPx - 10}px` }}>
+                    <div className={cn(wrapClass(wrap), cellStyle(row.index))} style={{ height: rowHeightPx, lineHeight: `${rowHeightPx - 10}px` }}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </div>
                   );
@@ -102,12 +113,15 @@ export default function AdgGridVirtual<T>({
                   return (
                     <td
                       key={cell.id}
+                      data-pinned={pinned ? "true" : "false"}
                       style={{
                         width: cell.column.getSize(),
-                        position: cell.column.getIsPinned() ? ("sticky" as const) : undefined,
-                        left: cell.column.getIsPinned() ? cell.column.getStart("left") : undefined,
-                        zIndex: cell.column.getIsPinned() ? 30 : undefined,
-                        background: cell.column.getIsPinned() ? "var(--adg-pin-bg)" : undefined,
+                        position: pinned ? ("sticky" as const) : undefined,
+                        left: pinned ? cell.column.getStart("left") : undefined,
+                        zIndex: pinned ? 140 : 10,
+                        background: pinned
+                          ? "var(--adg-pin-bg, var(--adg-head-bg, var(--background)))"
+                          : "var(--background)",
                         height: rowHeightPx,
                       }}
                       className={alignClass(align)}

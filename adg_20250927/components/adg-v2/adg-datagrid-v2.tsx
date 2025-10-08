@@ -105,9 +105,7 @@ export default function AdgDataGridV2<T>({
   const globalFilterFn = (row: Row<T>, _columnId: string, filterValue: string) => {
     if (!filterValue) return true;
     const v = filterValue.toLowerCase();
-    return Object.values(row.original as any).some((val) =>
-      String(val ?? "").toLowerCase().includes(v)
-    );
+    return Object.values(row.original as any).some((val) => String(val ?? "").toLowerCase().includes(v));
   };
 
   const table = useReactTable({
@@ -122,16 +120,7 @@ export default function AdgDataGridV2<T>({
       if (meta?.filter?.kind === "date") filterFn = "date";
       return { ...c, id, filterFn };
     }),
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
-      columnPinning,
-      columnSizing,
-      columnOrder,
-    },
+    state: { sorting, columnFilters, columnVisibility, rowSelection, globalFilter, columnPinning, columnSizing, columnOrder },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -152,10 +141,7 @@ export default function AdgDataGridV2<T>({
 
   React.useEffect(() => {
     applySettingsToTable(table, settings);
-    const left = settings.columns
-      .filter((c) => c.pin === "left")
-      .sort((a, b) => a.order - b.order)
-      .map((c) => c.id);
+    const left = settings.columns.filter((c) => c.pin === "left").sort((a, b) => a.order - b.order).map((c) => c.id);
     setColumnPinning({ left, right: [] });
     onSettingsChange?.(settings);
     if (storageKey) saveSettingsToStorage(storageKey, settings);
@@ -165,16 +151,15 @@ export default function AdgDataGridV2<T>({
   const headerHeightPx = 56;
   const heightPx = config?.heightPx ?? rowHeightPx * 10 + headerHeightPx + 44;
 
-  const paletteVars: React.CSSProperties =
-    settings.palette === "blue"
-      ? ({
-          ["--adg-head-bg" as any]: "color-mix(in srgb, var(--primary) 10%, var(--background))",
-          ["--adg-pin-bg" as any]: "var(--background)",
-        } as React.CSSProperties)
-      : ({
-          ["--adg-head-bg" as any]: "color-mix(in srgb, rgb(156 163 175) 16%, var(--background))",
-          ["--adg-pin-bg" as any]: "var(--background)",
-        } as React.CSSProperties);
+  // Palette: robust fallbacks to survive host app with missing vars
+  const isBlue = (settings.palette ?? "blue") === "blue";
+  const mixBlue = "color-mix(in srgb, var(--primary, rgb(30 64 175)) 10%, var(--background, white))";
+  const mixGray = "color-mix(in srgb, rgb(156 163 175) 16%, var(--background, white))";
+
+  const paletteVars: React.CSSProperties = {
+    ["--adg-head-bg" as any]: isBlue ? mixBlue : mixGray,
+    ["--adg-pin-bg" as any]: isBlue ? mixBlue : mixGray,
+  };
 
   return (
     <div className="w-full">
