@@ -140,15 +140,22 @@ export default function AdgGridVirtual<T>({
                   const content = (
                     <div
                       className={cn(
-                        "h-full w-full flex items-center", // vertical center
-                        justifyClass(align), // flex-item horizontal
-                        textAlignClass(align), // text-node horizontal
-                        wrapClass(wrap),
+                        "h-full w-full flex items-center min-w-0 overflow-hidden", // ← allow shrink + clip
                         cellStyle(row.index)
                       )}
                     >
-                      {/* make the “thing” inside a single flex item so justify-* always works */}
-                      <div className="inline-flex items-center max-w-full">
+                      {/* This inner wrapper MUST be the element that truncates.
+       - flex-1 + min-w-0 makes it fill the cell but still shrink
+       - overflow-hidden + truncate gives us the ellipsis
+       - textAlignClass keeps per-column L/C/R
+    */}
+                      <div
+                        className={cn(
+                          "flex-1 min-w-0 max-w-full overflow-hidden", // ← key for ellipsis
+                          textAlignClass(align), // left / center / right
+                          wrapClass(wrap) // 'truncate …' or 'whitespace-normal …'
+                        )}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext()
