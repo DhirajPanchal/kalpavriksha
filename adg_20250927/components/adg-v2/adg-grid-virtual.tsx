@@ -42,6 +42,18 @@ export default function AdgGridVirtual<T>({
     overscan: 8,
   });
 
+  // right after creating rowVirtualizer
+  React.useEffect(() => {
+    // 1) update the virtualizer to the new fixed row height
+    rowVirtualizer.setOptions({
+      ...rowVirtualizer.options, // keep all current options
+      estimateSize: () => rowHeightPx, // <- new density
+    });
+
+    // 2) clear cached measurements & reposition with the new size
+    rowVirtualizer.measure();
+  }, [rowHeightPx]); // rowVirtualizer is stable; no need to depend on it
+
   const tableWidth = table.getTotalSize();
 
   const alignClass = (a?: Align) =>
@@ -104,12 +116,13 @@ export default function AdgGridVirtual<T>({
         <tbody
           suppressHydrationWarning
           style={{ position: "relative", display: "block", height: totalSize }}
+          className="bg-purple-400"
         >
           {rowVirtualizer.getVirtualItems().map((vi) => {
             const row = rows[vi.index];
             return (
               <tr
-                key={row.id}
+                key={vi.key}
                 data-index={vi.index}
                 style={{
                   position: "absolute",
@@ -122,7 +135,7 @@ export default function AdgGridVirtual<T>({
                   zIndex: 0,
                   willChange: "transform",
                 }}
-                className="group"
+                className="group border border-blue-400"
               >
                 {row.getVisibleCells().map((cell) => {
                   const meta: any = cell.column.columnDef.meta ?? {};
@@ -141,7 +154,7 @@ export default function AdgGridVirtual<T>({
                     <div
                       className={cn(
                         "h-full w-full flex items-center min-w-0 overflow-hidden", // ← allow shrink + clip
-                        cellStyle(row.index)
+                        cellStyle(vi.index)
                       )}
                     >
                       {/* This inner wrapper MUST be the element that truncates.

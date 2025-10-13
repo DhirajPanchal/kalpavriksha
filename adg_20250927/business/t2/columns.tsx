@@ -22,19 +22,19 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       meta: {
         label: "Deal ID",
         defaultPin: "left",
-        widthKey: "M",
+        widthKey: "L",
         type: "string",
         align: "center",
       },
     },
     {
       accessorKey: "product",
-      header: "Product",
+      header: "Product 1",
       size: WIDTH_MAP.S,
       meta: {
         label: "Product",
         defaultPin: "left",
-        widthKey: "S",
+        widthKey: "L",
         type: "string",
       },
     },
@@ -47,7 +47,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
           {row.original.side}
         </Badge>
       ),
-      meta: { label: "Side", widthKey: "S", type: "enum" }, // enum -> center by default
+      meta: { label: "Side", widthKey: "L", type: "enum" }, // enum -> center by default
     },
     {
       accessorKey: "ccyPair",
@@ -56,7 +56,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       meta: {
         label: "CCY Pair",
         defaultPin: "left",
-        widthKey: "S",
+        widthKey: "L",
         type: "string",
       },
     },
@@ -69,7 +69,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       ),
       meta: {
         label: "Notional",
-        widthKey: "M",
+        widthKey: "L",
         type: "number",
         filter: { kind: "number" },
       },
@@ -81,7 +81,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       cell: ({ row }) => (
         <span className="font-mono">{row.original.rate.toFixed(4)}</span>
       ),
-      meta: { label: "Rate", widthKey: "S", type: "number" },
+      meta: { label: "Rate", widthKey: "L", type: "number" },
     },
     {
       accessorKey: "tradeDate",
@@ -90,7 +90,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       cell: ({ row }) => fmtDate(row.original.tradeDate),
       meta: {
         label: "Trade Date",
-        widthKey: "M",
+        widthKey: "L",
         type: "date",
         filter: { kind: "date" },
       },
@@ -100,13 +100,13 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       header: "Value Date",
       size: WIDTH_MAP.M,
       cell: ({ row }) => fmtDate(row.original.valueDate),
-      meta: { label: "Value Date", widthKey: "M", type: "date" },
+      meta: { label: "Value Date", widthKey: "L", type: "date" },
     },
     {
       accessorKey: "desk",
       header: "Desk",
       size: WIDTH_MAP.S,
-      meta: { label: "Desk", widthKey: "S", type: "string" },
+      meta: { label: "Desk", widthKey: "L", type: "string" },
     },
     {
       accessorKey: "legalEntity",
@@ -125,7 +125,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       size: WIDTH_MAP.S,
       meta: {
         label: "Region",
-        widthKey: "S",
+        widthKey: "L",
         type: "enum",
         filter: { kind: "enum", enumValues: ["APAC", "EMEA", "AMER"] },
       },
@@ -134,7 +134,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       accessorKey: "site",
       header: "Site",
       size: WIDTH_MAP.M,
-      meta: { label: "Site", widthKey: "M", type: "string" },
+      meta: { label: "Site", widthKey: "L", type: "string" },
     },
     {
       accessorKey: "status",
@@ -145,7 +145,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
           {row.original.status}
         </Badge>
       ),
-      meta: { label: "Status", widthKey: "S", type: "enum" },
+      meta: { label: "Status", widthKey: "L", type: "enum" },
     },
   ];
 }
