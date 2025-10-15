@@ -1,33 +1,40 @@
-"use client";
+import * as React from "react"
+import { Table } from "@tanstack/react-table"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Settings } from "lucide-react"
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table } from "@tanstack/react-table";
-import { Settings } from "lucide-react";
-import { ReactNode } from "react";
+export function AdgToolbar<T>({
+  table,
+  globalFilter,
+  setGlobalFilter,
+  openSettings,
+  setOpenSettings,
+  injectLeft,
+  injectCenter,
+  injectRight,
+}: {
+  table: Table<T>
+  globalFilter: string
+  setGlobalFilter: (v: string) => void
+  openSettings: boolean
+  setOpenSettings: (v: boolean) => void
+  injectLeft?: React.ReactNode
+  injectCenter?: React.ReactNode
+  injectRight?: React.ReactNode
+}) {
+  const hasAnyFilters =
+    (table.getState().columnFilters?.length ?? 0) > 0 ||
+    (table.getState().sorting?.length ?? 0) > 0 ||
+    (globalFilter?.length ?? 0) > 0
 
-interface AdgToolbarProps<T> {
-  table: Table<T>;
-  openSettings: boolean;
-  setOpenSettings: (v: boolean) => void;
-  globalFilter: string;
-  setGlobalFilter: (v: string) => void;
-  injectLeft?: ReactNode;
-  injectCenter?: ReactNode;
-  injectRight?: ReactNode;
-}
+  const clearAll = () => {
+    table.resetSorting()
+    table.resetColumnFilters()
+    setGlobalFilter("")
+    table.resetPageIndex()
+  }
 
-export default function AdgToolbar<T>(props: AdgToolbarProps<T>) {
-  const {
-    table,
-    openSettings,
-    setOpenSettings,
-    globalFilter,
-    setGlobalFilter,
-    injectLeft,
-    injectCenter,
-    injectRight,
-  } = props;
   return (
     <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between p-2">
       {injectLeft}
@@ -56,14 +63,25 @@ export default function AdgToolbar<T>(props: AdgToolbarProps<T>) {
           </select>
         </div>
         <Button
+          variant={hasAnyFilters ? "destructive" : "outline"}
+          className="h-9"
+          onClick={clearAll}
+          title="Clear all filters, sorts and search"
+        >
+          Clear&nbsp;All
+        </Button>
+        <Button
           variant="outline"
           className="h-9"
           onClick={() => setOpenSettings(true)}
+          aria-pressed={openSettings}
         >
           <Settings className="h-5 w-5" />
         </Button>
       </div>
       {injectRight}
     </div>
-  );
+  )
 }
+
+export default AdgToolbar

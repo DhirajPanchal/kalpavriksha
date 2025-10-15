@@ -17,13 +17,13 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ReactNode } from "react";
-import { applySettingsToTable, deriveInitialSettings } from "./adg-auxiliary";
+import { applySettingsToTable, buildFilterFns, deriveInitialSettings } from "./adg-auxiliary";
 import type { AdgColumnDef, GridSettingsSnapshot } from "./adg-types";
 import AdgGridVirtual from "./adg-grid-virtual";
 import AdgSettingsDnd from "./adg-settings-dnd";
 import AdgToolbar from "./adg-toolbar";
 import AdgPagination from "./adg-pagination";
-import { buildFilterFns } from "./adg-filters-adv";
+
 import { saveSettingsToStorage, loadSettingsFromStorage } from "./adg-persist";
 
 interface AdgDataGridConfig {
@@ -203,3 +203,5 @@ export default function AdgDataGridV2<T>({
     </div>
   );
 }
+
+

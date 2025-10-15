@@ -1,100 +1,106 @@
-"use client";
+import * as React from "react"
+import { Table } from "@tanstack/react-table"
+import { cn } from "@/lib/utils"
+import { ChevronUp, ChevronDown, X } from "lucide-react"
+import { AdgFilterButton } from "./adg-filters-adv"
 
-import * as React from "react";
-import { Table, flexRender } from "@tanstack/react-table";
-import { cn } from "@/lib/utils";
-import { FilterButton } from "./adg-filters-adv";
-import { Filter, SortAsc } from "lucide-react";
+type WrapMode = "single" | "multi"
 
-type Align = "left" | "center" | "right";
-
-export default function AdgHeaderRow<T>({
+export function AdgHeaderRow<T>({
   table,
-  headerHeightPx = 56,
+  headerHeightPx,
   defaultHeaderWrap = "single",
 }: {
-  table: Table<T>;
-  headerHeightPx?: number;
-  defaultHeaderWrap?: string;
+  table: Table<T>
+  headerHeightPx: number
+  defaultHeaderWrap?: WrapMode
 }) {
-  const wrapClass = (wrap?: string) =>
-    wrap === "multi"
-      ? "whitespace-normal break-words"
-      : "truncate whitespace-nowrap";
-
-  const textAlign = (a?: Align) =>
-    a === "left" ? "text-left" : a === "right" ? "text-right" : "text-center";
-
-  const justify = (a?: Align) =>
-    a === "left"
-      ? "justify-start"
-      : a === "right"
-      ? "justify-end"
-      : "justify-center";
-
-  // sensible fallback if var(--adg-head-bg) is not defined by wrapper
-  const headBgFallback =
-    "color-mix(in srgb, rgb(156 163 175) 16%, var(--background, white))";
-  const MASK_W = 2; // px width to hide underlying borders/seams
+  const headerGroup = table.getHeaderGroups()[0]
 
   return (
-    <thead
-      style={{
-        position: "sticky",
-        top: 0,
-        zIndex: 100, // ensure header is above body
-        height: headerHeightPx,
-      }}
-    >
-      {table.getHeaderGroups().map((hg) => (
-        <tr key={hg.id} style={{ height: headerHeightPx }}>
-          {hg.headers.map((header) => {
-            const meta: any = header.column.columnDef.meta ?? {};
-            const headerAlign: Align = meta.headerAlign ?? "center";
-            const headerWrap: string = meta.headerWrap ?? defaultHeaderWrap;
-            const pinned = header.column.getIsPinned();
+    <thead>
+      <tr className="group" style={{ height: headerHeightPx }}>
+        {headerGroup.headers.map((header) => {
+          if (header.isPlaceholder) return <th key={header.id} className="p-0" />
 
-            return (
-              <th
-                key={header.id}
-                data-pinned={pinned ? "true" : "false"}
-                style={{
-                  width: header.getSize(),
-                  position: pinned ? ("sticky" as const) : undefined,
-                  left: pinned ? header.column.getStart("left") : undefined,
-                  zIndex: pinned ? 200 : 120, // pinned header above everything
-                  height: headerHeightPx,
-                }}
-                className={cn("relative h-full bg-gray-100")}
-              >
-                <div className="h-full flex flex-row items-stretch border-none border-blue-500">
-                  <div className="h-full flex flex-1 items-center border-none border-red-500">
-                    {/* This is some text that can wrap and make the row taller. This is some text that can wrap and make the row taller. */}
-                    {flexRender(
-                      header.column.columnDef.header,
-                      header.getContext()
-                    )}
-                  </div>
+          const col = header.column
+          const sorted = col.getIsSorted() as false | "asc" | "desc"
+          const filtered = col.getIsFiltered()
+          const canSort = col.getCanSort()
+          const active = !!sorted || !!filtered
 
-                  <div className="h-full flex items-center border-none border-red-500">
-                    <SortAsc
-                      onClick={
-                        header.column.getCanSort()
-                          ? header.column.getToggleSortingHandler()
-                          : undefined
-                      }
-                    />
-                  </div>
-
-                  <div className="h-full flex items-center border-none border-red-500">
-                    <Filter />
-                  </div>
+          return (
+            <th
+              key={header.id}
+              className={cn("border border-r border-r-red-400 p-0 border-b", active ? "bg-primary/5" : "bg-transparent")}
+              style={{ height: headerHeightPx }}
+            >
+              <div className="h-full w-full flex items-stretch">
+                {/* Title */}
+                <div className={cn("flex-1 min-w-0 flex items-center font-medium px-2", "text-center")}>
+                  {header.column.columnDef.header as React.ReactNode}
                 </div>
-              </th>
-            );
-          })}
-        </tr>
-      ))}
+
+                {/* Sort buttons + clear */}
+                <div className="h-full flex items-center gap-1 px-1">
+                  {canSort && (
+                    <>
+                      <button
+                        aria-label="Sort ascending"
+                        className={cn(
+                          "h-6 w-6 inline-flex items-center justify-center rounded",
+                          sorted === "asc" ? "bg-primary/10 text-primary" : "hover:bg-accent"
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          col.toggleSorting(false)
+                          table.resetPageIndex()
+                        }}
+                      >
+                        <ChevronUp className="h-4 w-4" />
+                      </button>
+
+                      {sorted && (
+                        <button
+                          aria-label="Clear sort"
+                          className="h-6 w-6 inline-flex items-center justify-center rounded hover:bg-accent"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            col.clearSorting()
+                            table.resetPageIndex()
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      )}
+
+                      <button
+                        aria-label="Sort descending"
+                        className={cn(
+                          "h-6 w-6 inline-flex items-center justify-center rounded",
+                          sorted === "desc" ? "bg-primary/10 text-primary" : "hover:bg-accent"
+                        )}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          col.toggleSorting(true)
+                          table.resetPageIndex()
+                        }}
+                      >
+                        <ChevronDown className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Filter trigger */}
+                  <AdgFilterButton column={col} table={table} />
+                </div>
+              </div>
+            </th>
+          )
+        })}
+      </tr>
     </thead>
-  );
+  )
 }
+
+export default AdgHeaderRow

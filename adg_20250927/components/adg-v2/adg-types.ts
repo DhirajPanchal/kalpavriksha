@@ -1,6 +1,5 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-
 export type WidthKey = "S" | "M" | "L";
 
 export type Density = "compact" | "medium" | "large";
@@ -19,12 +18,12 @@ export interface ColumnFilterMeta {
 export interface AdgColumnMeta {
   label?: string;
   type?: AdgDataType;
-align?: AdgAlign;
+  align?: AdgAlign;
   headerAlign?: AdgAlign;
   defaultVisible?: boolean;
   defaultPin?: PinKey;
   widthKey?: WidthKey;
-  filter?:ColumnFilterMeta;
+  filter?: ColumnFilterMeta;
 }
 
 export type AdgColumnDef<T> = ColumnDef<T> & { meta?: AdgColumnMeta };
@@ -42,8 +41,8 @@ export interface GridSettingsSnapshot {
   columns: ColumnSetting[];
   density: Density;
   palette: "blue" | "gray";
-  headerWrap?:string;
-  align?:string;
-  wrap?:string;
+  headerWrap?: string;
+  align?: string;
+  wrap?: string;
   headerHeight?: "short" | "medium" | "tall";
 }
