@@ -31,8 +31,10 @@ export const DEFAULT_ADG_COLORS: AdgColorConfig = {
     base: "bg-background",
     zebraEven: "bg-muted",
     zebraOdd: "bg-background",
-    hover: "group-hover:bg-primary/5",
-    selected: "bg-primary/10",
+    // hover: "group-hover:bg-primary/5",
+    // selected: "bg-primary/10",
+    hoverOverlay: "bg-primary/5",
+    selectedOverlay: "bg-primary/10",
     border: "border-border",
     text: "text-foreground",
   },
@@ -44,7 +46,6 @@ export const DEFAULT_ADG_COLORS: AdgColorConfig = {
     border: "border-border",
   },
 };
-
 
 // const yellowPlus: Partial<AdgColorConfig> = {
 //   columnHover: { overlay: "bg-primary/20 ring-1 ring-inset ring-primary/40" },

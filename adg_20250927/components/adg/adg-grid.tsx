@@ -74,8 +74,8 @@ export default function AdgGrid<T>({
         index % 2 ? ` ${colors.row.zebraEven}` : ` ${colors.row.zebraOdd}`;
     else compose += ` ${colors.row.base}`;
     // Hover & selection tints
-    compose += ` ${colors.row.hover}`;
-    if (selected) compose += ` ${colors.row.selected}`;
+    // compose += ` ${colors.row.hover}`;
+    // if (selected) compose += ` ${colors.row.selected}`;
     // Row separators
     if (settings?.rowLines) compose += ` border-b ${colors.row.border}`;
     return compose;
@@ -222,6 +222,28 @@ export default function AdgGrid<T>({
                             />
                           )}
                           {content(pinned)}
+
+{/* Row hover overlay (keeps base opaque; fades in on row hover) */}
+<div
+  aria-hidden
+  className={cn(
+    "pointer-events-none absolute inset-0 z-10 opacity-0 transition-opacity duration-150",
+    "group-hover:opacity-100",
+    colors.row.hoverOverlay
+  )}
+/>
+
+{/* Row selected overlay (above base, below pinned mask) */}
+{row.getIsSelected() && (
+  <div
+    aria-hidden
+    className={cn(
+      "pointer-events-none absolute inset-0 z-10",
+      colors.row.selectedOverlay
+    )}
+  />
+)}
+
                         </td>
                       );
                     })}

@@ -13,7 +13,7 @@ import { LandmarkIcon } from "lucide-react";
 import { useState } from "react";
 
 const branding = (
-  <div className="flex flex-row gat-2 px-1 items-center text-[#5E6584]">
+  <div className="flex flex-row gap-2 px-1 items-center text-[#5E6584]">
     <LandmarkIcon className="w-7 h-7" />
     <span className="font-medium text-xl text-semibold tracking-wide">
       Treasury Deals Tracker
@@ -45,7 +45,7 @@ export default function Page() {
           density: "medium",
           rowsVisible: 10,
           rowZebra: true,
-          rowLines: true,
+          rowLines: false,
         }}
         config={{
           storageKey: "treasury-grid",
@@ -67,6 +67,7 @@ export default function Page() {
           console.log("Double-clicked:", record);
         }}
         busy={busy}
+        colorConfig={GRAY_ADG_COLORS}
       />
     </div>
   );

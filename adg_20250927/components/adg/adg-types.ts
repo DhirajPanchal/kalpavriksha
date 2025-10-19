@@ -67,8 +67,11 @@ export type AdgColorConfig = {
     base: string; // base bg when not zebra
     zebraEven: string; // zebra even bg
     zebraOdd: string; // zebra odd bg
-    hover: string; // row hover bg (applied via group-hover)
-    selected: string; // selected row bg overlay
+    // hover: string; // row hover bg (applied via group-hover)
+    // selected: string; // selected row bg overlay
+    hoverOverlay: string; // e.g., "bg-primary/5"
+    selectedOverlay: string; // e.g., "bg-primary/10"
+
     border: string; // row separator border
     text: string; // body text color
   };

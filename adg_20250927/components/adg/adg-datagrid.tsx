@@ -227,7 +227,7 @@ export default function AdgDataGrid<T>({
 
   return (
     <div className="w-full">
-      <div className="rounded-xl border shadow-sm">
+      <div className="rounded-md border shadow-sm">
         <AdgToolbar
           table={table}
           openSettings={openSettings}
@@ -270,9 +270,6 @@ export default function AdgDataGrid<T>({
         <AdgPagination table={table} />
       </div>
 
-      <div className="p-2 border">
-        <p>enableColumnHover : {settings.enableColumnHover} </p>
-      </div>
     </div>
   );
 }
