@@ -12,11 +12,11 @@ const statusClass: Record<TreasuryDealTicket["status"], string> = {
 };
 
 const sideClass: Record<TreasuryDealTicket["side"], string> = {
-  Buy: "bg-green-500 text-white",
-  Sell: "bg-red-500 text-white",
+  Buy: "bg-lime-200 text-gray-700",
+  Sell: "bg-red-200 text-gray-700",
 };
 
-const capsuleClass:string = "rounded-full px-2 py-0.5 tracking-wider";
+const capsuleClass:string = "rounded-sm px-3 py-1 tracking-wider text-sm";
 
 // Parse YYYY-MM-DD as a UTC date-only to avoid SSR/CSR timezone drift
 const parseDateOnlyUTC = (s: string) => {

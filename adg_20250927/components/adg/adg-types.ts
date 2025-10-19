@@ -1,12 +1,13 @@
 import { ColumnDef } from "@tanstack/react-table";
 
-export type WidthKey = "S" | "M" | "L";
+export type WidthKey = "XS" | "S" | "M" | "L" | "XL";
 
 export type Density = "compact" | "medium" | "large";
 
-export type PinKey = "left" | false;
 export type FilterKind = "text" | "number" | "enum" | "date";
+
 export type AdgAlign = "left" | "center" | "right";
+
 export type AdgDataType = "string" | "number" | "enum" | "date";
 
 export interface ColumnFilterMeta {
@@ -19,9 +20,8 @@ export interface AdgColumnMeta {
   label?: string;
   type?: AdgDataType;
   align?: AdgAlign;
-  headerAlign?: AdgAlign;
   defaultVisible?: boolean;
-  defaultPin?: PinKey;
+  defaultPin?: boolean;
   widthKey?: WidthKey;
   filter?: ColumnFilterMeta;
 }
@@ -32,7 +32,7 @@ export interface ColumnSetting {
   id: string;
   label: string;
   visible: boolean;
-  pin: PinKey;
+  pin: boolean;
   widthKey: WidthKey;
   order: number;
 }
@@ -40,9 +40,10 @@ export interface ColumnSetting {
 export interface GridSettingsSnapshot {
   columns: ColumnSetting[];
   density: Density;
-  palette: "blue" | "gray";
   headerWrap?: string;
-  align?: string;
   wrap?: string;
   headerHeight?: "short" | "medium" | "tall";
+  rowsVisible?: 5 | 10 | 15 | 20 | 25;
+  rowZebra?: boolean;
+  rowLines?: boolean;
 }

@@ -1,9 +1,0 @@
-.adg-scrollbar {
-  --adg-sb-track: #e5e7eb;  /* track color */
-  --adg-sb-thumb: #111827;  /* thumb color */
-  --adg-sb-size: 6px;       /* thickness */
-}
-.dark .adg-scrollbar {
-  --adg-sb-track: #374151;
-  --adg-sb-thumb: #e5e7eb;
-}
