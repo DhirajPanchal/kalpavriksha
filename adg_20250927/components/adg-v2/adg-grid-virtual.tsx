@@ -97,11 +97,27 @@ export default function AdgGridVirtual<T>({
 
   const MASK_W = 2; // px width to hide underlying borders/seams for pinned cells
 
+  // NEW: pull the hover meta from table
+  const meta = table.options.meta as {
+    hoveredRowIndex: number | null;
+    setHoveredRowIndex: (i: number | null) => void;
+    hoveredColId: string | null;
+    setHoveredColId: (id: string | null) => void;
+  };
+
+  // Subtle overlays (tweak colors to your theme)
+  const rowHoverOverlay = "bg-amber-50/60 dark:bg-slate-700/40";
+  const colHoverOverlay = "bg-amber-100/50 dark:bg-slate-600/40";
+
   return (
     <div
       ref={parentRef}
       className="relative overflow-auto"
       style={{ maxHeight: heightPx, isolation: "isolate" }}
+      onMouseLeave={() => {
+        meta?.setHoveredRowIndex?.(null);
+        meta?.setHoveredColId?.(null);
+      }}
     >
       <table
         className="table-fixed border-separate border-spacing-0 w-max"
@@ -110,16 +126,16 @@ export default function AdgGridVirtual<T>({
         <AdgHeaderRow
           table={table}
           headerHeightPx={headerHeightPx}
-          defaultHeaderWrap={defaultCellWrap}
+          // defaultHeaderWrap={defaultCellWrap}
         />
 
         <tbody
           suppressHydrationWarning
           style={{ position: "relative", display: "block", height: totalSize }}
-          className="bg-purple-400"
         >
           {rowVirtualizer.getVirtualItems().map((vi) => {
             const row = rows[vi.index];
+            const isRowHover = meta?.hoveredRowIndex === vi.index;
             return (
               <tr
                 key={vi.key}
@@ -135,7 +151,8 @@ export default function AdgGridVirtual<T>({
                   zIndex: 0,
                   willChange: "transform",
                 }}
-                className="group border border-blue-400"
+                className="group"
+                onMouseLeave={() => meta?.setHoveredRowIndex?.(null)}
               >
                 {row.getVisibleCells().map((cell) => {
                   const meta: any = cell.column.columnDef.meta ?? {};
@@ -143,7 +160,7 @@ export default function AdgGridVirtual<T>({
                     meta.align ?? defaultAlignForType(meta.type);
                   const wrap: string = meta.wrap ?? defaultCellWrap;
                   const pinned = cell.column.getIsPinned();
-
+                  const isColHover = meta?.hoveredColId === cell.column.id;
                   const rawValue = row.getValue(cell.column.id) as any;
                   const text =
                     typeof rawValue === "string"
@@ -154,7 +171,9 @@ export default function AdgGridVirtual<T>({
                     <div
                       className={cn(
                         "h-full w-full flex items-center min-w-0 overflow-hidden", // ← allow shrink + clip
-                        cellStyle(vi.index)
+                        cellStyle(vi.index),
+                        isRowHover && rowHoverOverlay,
+                        isColHover && colHoverOverlay
                       )}
                     >
                       {/* This inner wrapper MUST be the element that truncates.
@@ -192,6 +211,10 @@ export default function AdgGridVirtual<T>({
                         height: rowHeightPx,
                       }}
                       className="relative align-middle p-0"
+                      onMouseEnter={() => {
+                        meta?.setHoveredRowIndex?.(vi.index);
+                        meta?.setHoveredColId?.(cell.column.id);
+                      }}
                     >
                       {/* right-edge mask to hide underlying unpinned borders when scrolled left */}
                       {pinned && (

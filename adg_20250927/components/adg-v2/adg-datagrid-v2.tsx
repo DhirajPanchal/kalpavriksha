@@ -107,6 +107,8 @@ export default function AdgDataGridV2<T>({
     const v = filterValue.toLowerCase();
     return Object.values(row.original as any).some((val) => String(val ?? "").toLowerCase().includes(v));
   };
+  const [hoveredRowIndex, setHoveredRowIndex] = React.useState<number | null>(null)
+  const [hoveredColId, setHoveredColId] = React.useState<string | null>(null)
 
   const table = useReactTable({
     data,
@@ -137,6 +139,12 @@ export default function AdgDataGridV2<T>({
     enableRowSelection: true,
     globalFilterFn,
     filterFns,
+        meta: {
+      hoveredRowIndex,
+      setHoveredRowIndex,
+      hoveredColId,
+      setHoveredColId,
+    },
   });
 
   React.useEffect(() => {
