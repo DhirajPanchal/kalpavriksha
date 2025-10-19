@@ -1,6 +1,7 @@
 "use client";
 
 import AdgDataGrid from "@/components/adg/adg-datagrid";
+import { BLUE_ADG_COLORS, FRUITY_ADG_COLORS, GRAY_ADG_COLORS, RED_ADG_COLORS } from "@/components/adg/adg-predefined";
 import { treasuryColumns } from "@/components/tdt/columns";
 import { sampleTreasuryDeals } from "@/components/tdt/data";
 import { TreasuryDealTicket } from "@/components/tdt/types";
@@ -44,7 +45,7 @@ export default function Page() {
           density: "medium",
           rowsVisible: 10,
           rowZebra: true,
-          rowLines: false,
+          rowLines: true,
         }}
         config={{
           storageKey: "treasury-grid",

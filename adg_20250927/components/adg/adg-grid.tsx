@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import { Row, Table, flexRender } from "@tanstack/react-table";
 import AdgHeaderRow from "./adg-header";
-import { GridSettingsSnapshot } from "./adg-types";
+import { AdgColorConfig, GridSettingsSnapshot } from "./adg-types";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -25,6 +25,7 @@ interface AdgGridProps<T> {
     row: ReturnType<Table<T>["getRowModel"]>["rows"][number]
   ) => React.ReactNode;
   onRowDoubleClickRow?: (row: Row<T>) => void;
+  colors: AdgColorConfig;
 }
 
 export default function AdgGrid<T>({
@@ -36,6 +37,7 @@ export default function AdgGrid<T>({
   settings,
   rowContextMenu,
   onRowDoubleClickRow,
+  colors,
 }: AdgGridProps<T>) {
   // console.log("settings :: ");
   // console.log(settings);
@@ -64,29 +66,18 @@ export default function AdgGrid<T>({
     }
   };
 
-  const cellStyle = (index: number, selected: boolean = false) => {
-    // console.log(index + " - " +selected);
-
-    // let compose: string = "";
-    // if (settings?.rowZebra) {
-    //   compose += index % 2 ? " bg-gray-400" : " bg-white";
-    // }
-    // return compose;
-
-    let compose: string = "";
-    compose += " group-hover:bg-sky-100";
-    if (selected) {
-      compose += " bg-sky-200";
-    } else {
-      if (settings?.rowZebra) {
-        compose += index % 2 ? " bg-gray-100" : " bg-white";
-      } else {
-        compose += " bg-white";
-      }
-    }
-    if (settings?.rowLines) {
-      compose += " border-b border-gray-200 ";
-    }
+  const cellStyle = (index: number, selected = false, pinned = false) => {
+    let compose = "";
+    // OPAQUE base to avoid bleed-through on pinned
+    if (settings?.rowZebra)
+      compose +=
+        index % 2 ? ` ${colors.row.zebraEven}` : ` ${colors.row.zebraOdd}`;
+    else compose += ` ${colors.row.base}`;
+    // Hover & selection tints
+    compose += ` ${colors.row.hover}`;
+    if (selected) compose += ` ${colors.row.selected}`;
+    // Row separators
+    if (settings?.rowLines) compose += ` border-b ${colors.row.border}`;
     return compose;
   };
 
@@ -109,6 +100,7 @@ export default function AdgGrid<T>({
           table={table}
           headerHeightPx={headerHeightPx}
           defaultHeaderWrap={settings?.headerWrap}
+          colors={colors}
         />
 
         <tbody
@@ -157,11 +149,11 @@ export default function AdgGrid<T>({
                           ? rawValue
                           : String(rawValue ?? "");
 
-                      const content = (
+                      const content = (isPinned: any) => (
                         <div
                           className={cn(
                             "h-full w-full flex items-center min-w-0 overflow-hidden ",
-                            cellStyle(vi.index, row.getIsSelected())
+                            cellStyle(vi.index, row.getIsSelected(), isPinned)
                           )}
                         >
                           {/* cellStyle(vi.index, row.getIsSelected()) */}
@@ -208,10 +200,10 @@ export default function AdgGrid<T>({
                             hoverColId === cell.column.id && (
                               <div
                                 aria-hidden
-                                className="pointer-events-none absolute inset-0 z-20
-                                bg-black/5 dark:bg-white/10
-                                ring-1 ring-inset ring-black/5 dark:ring-white/10
-                                transition-colors duration-150"
+                                className={cn(
+                                  "pointer-events-none absolute inset-0 z-20 transition-[background,box-shadow] duration-150",
+                                  colors.columnHover.overlay
+                                )}
                               />
                             )}
                           {pinned && (
@@ -229,7 +221,7 @@ export default function AdgGrid<T>({
                               }}
                             />
                           )}
-                          {content}
+                          {content(pinned)}
                         </td>
                       );
                     })}

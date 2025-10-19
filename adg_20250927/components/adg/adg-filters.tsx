@@ -1,5 +1,5 @@
 "use client";
-
+import { GridSettingsSnapshot, AdgColorConfig } from "./adg-types";
 import * as React from "react";
 import { Column, Row, Table } from "@tanstack/react-table";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/popover";
 import { ColumnFilterMeta } from "./adg-types";
 import { Filter } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 export function buildFilterFns<T>() {
   return {
@@ -76,10 +77,12 @@ export function AdgFilter<T>({
   table,
   column,
   meta,
+  colors,
 }: {
   table: Table<T>;
   column: Column<T, unknown>;
   meta?: ColumnFilterMeta;
+  colors: AdgColorConfig
 }) {
   const [open, setOpen] = React.useState(false);
   const kind = meta?.kind ?? "text";
@@ -120,7 +123,7 @@ export function AdgFilter<T>({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-          className="h-full w-ftll p-0 hover:bg-sky-100"
+        className={cn("h-full w-full p-0", colors.header.filterHover)}
           aria-label="Filter column"
           onClick={(e) => {
             e.stopPropagation();
@@ -129,12 +132,12 @@ export function AdgFilter<T>({
             e.stopPropagation();
           }}
         >
-          <Filter size={16} className="text-sky-600" />
+         <Filter size={16} className={cn(colors.header.filterIconIdle)} />
         </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-full shadow-md rounded-lg border border-sky-400 bg-white/90 ring-1 ring-black/5"
+        className={cn("w-full shadow-md rounded-lg ring-1", colors.popover.border, colors.popover.bg)}
         style={{ minWidth: "320px" }}
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}

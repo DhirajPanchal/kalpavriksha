@@ -3,19 +3,21 @@ import { flexRender, Table } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
 import { ChevronUp, ChevronDown, X } from "lucide-react";
 import { AdgFilter } from "./adg-filters";
+import { GridSettingsSnapshot, AdgColorConfig } from "./adg-types";
 
 type WrapMode = "single" | "multi";
 
-export function AdgHeaderRow<T>({
+export default function AdgHeaderRow<T>({
   table,
-  headerHeightPx = 64,
-  defaultHeaderWrap = "single",
+  headerHeightPx = 56,
+  defaultHeaderWrap,
+  colors,
 }: {
   table: Table<T>;
   headerHeightPx: number;
   defaultHeaderWrap?: string;
+  colors: AdgColorConfig;
 }) {
-
   const wrapClass = (wrap?: string) =>
     wrap === "multi"
       ? "whitespace-normal break-words"
@@ -23,8 +25,8 @@ export function AdgHeaderRow<T>({
 
   const cellStyle = (pinned: any) =>
     pinned
-      ? "border-b border-b-4 border-b-sky-600 "
-      : "border-b border-b-gray-200";
+      ? `border-b border-b-4 ${colors.header.borderActive}`
+      : `border-b ${colors.header.border}`;
 
   const sortingState = table.getState().sorting;
 
@@ -75,17 +77,18 @@ export function AdgHeaderRow<T>({
                   ) || ""
                 )}
                 className={cn(
-                  "relative h-full font-semibold border-r border-r-gray-100",
+                  "relative h-full font-semibold border-r",
+                  colors.header.border,
                   cellStyle(pinned),
-                  active
-                    ? "bg-gradient-to-l from-gray-50 via-yellow-50 to-yellow-50"
-                    : "bg-gradient-to-l from-gray-50 via-gray-50 to-gray-100"
+                  active ? colors.header.bgActive : colors.header.bgIdle,
+                  colors.header.text
                 )}
               >
                 <div className="h-full w-full flex flex-row items-stretch">
                   <div
                     className={cn(
-                      "flex flex-1 items-center justify-center hover:bg-white text-gray-800",
+                      "flex flex-1 items-center justify-center",
+                      colors.header.text,
                       wrapClass(headerWrap)
                     )}
                     style={
@@ -125,20 +128,28 @@ export function AdgHeaderRow<T>({
                     <div className="flex flex-col justify-center items-center min-w-[24px]">
                       <div
                         className={cn(
-                          "w-full flex items-end justify-center grow hover:bg-sky-100 cursor-pointer",
-                          sorted === "asc" ? "bg-sky-100" : ""
+                          "w-full flex items-end justify-center grow cursor-pointer ",
+                          colors.header.filterHover,
+                          sorted === "asc" ? colors.header.bgActive : ""
                         )}
                         onClick={() => {
                           col.toggleSorting(false, true);
                           table.resetPageIndex();
                         }}
                       >
-                        <ChevronUp size={16} className="text-sky-600" />
+                        <ChevronUp
+                          size={16}
+                          className={cn(
+                            sorted === "asc"
+                              ? colors.header.sortIconActive
+                              : colors.header.sortIconIdle
+                          )}
+                        />
                       </div>
                       {sorted && (
                         <div
                           className={cn(
-                            "w-full flex items-end justify-center grow hover:bg-sky-100 cursor-pointer"
+                            "w-full flex items-center justify-center grow hover:bg-sky-100 cursor-pointer "
                           )}
                           onClick={() => {
                             col.clearSorting();
@@ -146,25 +157,41 @@ export function AdgHeaderRow<T>({
                           }}
                         >
                           {showOrderNum && (
-                            <span className="text-sky-600 text-xs">
+                            <span
+                              className={cn(
+                                "text-xs",
+                                colors.header.sortIconActive
+                              )}
+                            >
                               {orderNum}
                             </span>
                           )}
-                          <X size={16} className="text-sky-600" />
+                          <X
+                            size={16}
+                            className={cn(colors.header.sortIconIdle)}
+                          />
                         </div>
                       )}
 
                       <div
                         className={cn(
-                          "w-full flex items-end justify-center grow hover:bg-sky-100 cursor-pointer",
-                          sorted === "desc" ? "bg-gary-100" : ""
+                          "w-full flex items-start justify-center grow cursor-pointer ",
+                          colors.header.filterHover,
+                          sorted === "desc" ? colors.header.bgActive : ""
                         )}
                         onClick={() => {
                           col.toggleSorting(true, true);
                           table.resetPageIndex();
                         }}
                       >
-                        <ChevronDown size={16} className="text-sky-600" />
+                        <ChevronDown
+                          size={16}
+                          className={cn(
+                            sorted === "desc"
+                              ? colors.header.sortIconActive
+                              : colors.header.sortIconIdle
+                          )}
+                        />
                       </div>
                     </div>
                   )}
@@ -175,14 +202,16 @@ export function AdgHeaderRow<T>({
                     return (
                       <div
                         className={cn(
-                          "flex px-0.5 hover:bg-sky-100 cursor-pointer min-w-[24px]",
-                          filtered ? "bg-sky-100" : ""
+                          "flex px-0.5 cursor-pointer min-w-[24px]",
+                          colors.header.filterHover,
+                          filtered ? colors.header.bgActive : ""
                         )}
                       >
                         <AdgFilter
                           meta={m.filter}
                           column={header.column}
                           table={table}
+                          colors={colors}
                         />
                       </div>
                     );
@@ -196,5 +225,3 @@ export function AdgHeaderRow<T>({
     </thead>
   );
 }
-
-export default AdgHeaderRow;

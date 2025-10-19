@@ -16,15 +16,26 @@ import {
   useReactTable,
 } from "@tanstack/react-table";
 import { ReactNode } from "react";
-import { applySettingsToTable, deriveInitialSettings } from "./adg-auxiliary";
-import type { AdgColumnDef, GridSettingsSnapshot } from "./adg-types";
-import AdgSettingsDnd from "./adg-settings";
-import AdgToolbar from "./adg-toolbar";
-import AdgPagination from "./adg-pagination";
+import {
+  applySettingsToTable,
+  deriveInitialSettings,
+} from "@/components/adg/adg-auxiliary";
+import type {
+  AdgColumnDef,
+  GridSettingsSnapshot,
+  AdgColorConfig,
+} from "@/components/adg/adg-types";
+import AdgSettingsDnd from "@/components/adg/adg-settings";
+import AdgToolbar from "@/components/adg/adg-toolbar";
+import AdgPagination from "@/components/adg/adg-pagination";
 
-import { saveSettingsToStorage, loadSettingsFromStorage } from "./adg-persist";
-import AdgGrid from "./adg-grid";
-import { buildFilterFns } from "./adg-filters";
+import {
+  saveSettingsToStorage,
+  loadSettingsFromStorage,
+} from "@/components/adg/adg-persist";
+import AdgGrid from "@/components/adg/adg-grid";
+import { buildFilterFns } from "@/components/adg/adg-filters";
+import { DEFAULT_ADG_COLORS } from "@/components/adg/adg-constants";
 
 interface AdgDataGridConfig {
   storageKey?: string;
@@ -42,6 +53,7 @@ interface AdgDataGridProps<T> {
   config?: AdgDataGridConfig;
   rowContextMenu?: (row: Row<T>) => ReactNode;
   onRowDoubleClick?: (data: T) => void;
+  colorConfig?: Partial<AdgColorConfig>;
   busy?: {
     loading: boolean;
     error: boolean;
@@ -67,6 +79,7 @@ export default function AdgDataGrid<T>({
   config,
   rowContextMenu,
   onRowDoubleClick,
+  colorConfig,
   busy,
 }: AdgDataGridProps<T>) {
   const storageKey = config?.storageKey;
@@ -196,10 +209,21 @@ export default function AdgDataGrid<T>({
   const headerHeightPx = 56;
   const heightPx = config?.heightPx ?? rowHeightPx * 10 + headerHeightPx + 44;
 
-  const mixBlue =
-    "color-mix(in srgb, var(--primary, rgb(30 64 175)) 10%, var(--background, white))";
-  const mixGray =
-    "color-mix(in srgb, rgb(156 163 175) 16%, var(--background, white))";
+  const colors: AdgColorConfig = React.useMemo(() => {
+    // shallow merge at sub-section level
+    return {
+      header: { ...DEFAULT_ADG_COLORS.header, ...(colorConfig?.header ?? {}) },
+      row: { ...DEFAULT_ADG_COLORS.row, ...(colorConfig?.row ?? {}) },
+      columnHover: {
+        ...DEFAULT_ADG_COLORS.columnHover,
+        ...(colorConfig?.columnHover ?? {}),
+      },
+      popover: {
+        ...DEFAULT_ADG_COLORS.popover,
+        ...(colorConfig?.popover ?? {}),
+      },
+    };
+  }, [colorConfig]);
 
   return (
     <div className="w-full">
@@ -213,7 +237,6 @@ export default function AdgDataGrid<T>({
           injectLeft={config?.toolbarLeft}
           injectCenter={config?.toolbarCenter}
           injectRight={config?.toolbarRight}
-          
         />
 
         <AdgSettingsDnd
@@ -241,15 +264,15 @@ export default function AdgDataGrid<T>({
           settings={settings}
           rowContextMenu={rowContextMenu}
           onRowDoubleClickRow={(row) => onRowDoubleClick?.(row.original)}
+          colors={colors}
         />
 
         <AdgPagination table={table} />
       </div>
 
-          <div className="p-2 border">
-            <p>enableColumnHover : {settings.enableColumnHover} </p>
-          </div>
-
+      <div className="p-2 border">
+        <p>enableColumnHover : {settings.enableColumnHover} </p>
+      </div>
     </div>
   );
 }
