@@ -38,6 +38,7 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { Switch } from "../ui/switch";
 
 function SortableRow({
   id,
@@ -186,6 +187,25 @@ export default function AdgSettings<T>({
             </div>
           </div>
 
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-sm font-medium">Column hover highlight</div>
+              <div className="text-xs text-muted-foreground">
+                Show a subtle glass effect on the column under the pointer (body
+                only).
+              </div>
+            </div>
+            <Switch
+              checked={!!draft.enableColumnHover}
+              onCheckedChange={(checked) =>
+                setDraft({
+                  ...draft,
+                  enableColumnHover: checked,
+                })
+              }
+            />
+          </div>
+
           <div className="ml-auto flex items-center gap-2">
             <Button
               variant="ghost"
@@ -266,9 +286,7 @@ export default function AdgSettings<T>({
                               setDraft({
                                 ...draft,
                                 columns: draft.columns.map((x) =>
-                                  x.id === c.id
-                                    ? { ...x, pin: true  }
-                                    : x
+                                  x.id === c.id ? { ...x, pin: true } : x
                                 ),
                               })
                             }
@@ -280,9 +298,7 @@ export default function AdgSettings<T>({
                               setDraft({
                                 ...draft,
                                 columns: draft.columns.map((x) =>
-                                  x.id === c.id
-                                    ? { ...x, pin: false }
-                                    : x
+                                  x.id === c.id ? { ...x, pin: false } : x
                                 ),
                               })
                             }

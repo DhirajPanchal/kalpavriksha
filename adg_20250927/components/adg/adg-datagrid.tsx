@@ -40,6 +40,8 @@ interface AdgDataGridProps<T> {
   initialSettings?: Partial<GridSettingsSnapshot>;
   onSettingsChange?: (s: GridSettingsSnapshot) => void;
   config?: AdgDataGridConfig;
+  rowContextMenu?: (row: Row<T>) => ReactNode;
+  onRowDoubleClick?: (data: T) => void;
   busy?: {
     loading: boolean;
     error: boolean;
@@ -63,6 +65,8 @@ export default function AdgDataGrid<T>({
   initialSettings,
   onSettingsChange,
   config,
+  rowContextMenu,
+  onRowDoubleClick,
   busy,
 }: AdgDataGridProps<T>) {
   const storageKey = config?.storageKey;
@@ -91,6 +95,7 @@ export default function AdgDataGrid<T>({
       rowsVisible: initialSettings?.rowsVisible ?? 10,
       rowZebra: initialSettings?.rowZebra ?? true,
       rowLines: initialSettings?.rowLines ?? false,
+      enableColumnHover: initialSettings?.enableColumnHover ?? false,
     }),
     [
       columns,
@@ -100,6 +105,7 @@ export default function AdgDataGrid<T>({
       initialSettings?.rowsVisible,
       initialSettings?.rowZebra,
       initialSettings?.rowLines,
+      initialSettings?.enableColumnHover,
     ]
   );
 
@@ -207,6 +213,7 @@ export default function AdgDataGrid<T>({
           injectLeft={config?.toolbarLeft}
           injectCenter={config?.toolbarCenter}
           injectRight={config?.toolbarRight}
+          
         />
 
         <AdgSettingsDnd
@@ -232,13 +239,15 @@ export default function AdgDataGrid<T>({
           defaultCellWrap={settings.wrap ?? "single"}
           visibleRows={settings.rowsVisible ?? 10}
           settings={settings}
+          rowContextMenu={rowContextMenu}
+          onRowDoubleClickRow={(row) => onRowDoubleClick?.(row.original)}
         />
 
         <AdgPagination table={table} />
       </div>
 
           <div className="p-2 border">
-            <p> {settings.headerWrap} </p>
+            <p>enableColumnHover : {settings.enableColumnHover} </p>
           </div>
 
     </div>

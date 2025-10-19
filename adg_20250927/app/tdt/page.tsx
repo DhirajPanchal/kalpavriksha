@@ -3,6 +3,11 @@
 import AdgDataGrid from "@/components/adg/adg-datagrid";
 import { treasuryColumns } from "@/components/tdt/columns";
 import { sampleTreasuryDeals } from "@/components/tdt/data";
+import { TreasuryDealTicket } from "@/components/tdt/types";
+import {
+  ContextMenuItem,
+  ContextMenuSeparator,
+} from "@/components/ui/context-menu";
 import { LandmarkIcon } from "lucide-react";
 import { useState } from "react";
 
@@ -26,6 +31,10 @@ export default function Page() {
     success: false,
   });
 
+  function myFn(original: TreasuryDealTicket): void {
+    console.log(original);
+  }
+
   return (
     <div className="p-16">
       <AdgDataGrid
@@ -44,6 +53,17 @@ export default function Page() {
         }}
         onSettingsChange={(snapshot) => {
           console.log("settings snapshot", snapshot);
+        }}
+        rowContextMenu={(row) => (
+          <>
+            <ContextMenuSeparator />
+            <ContextMenuItem onClick={() => myFn(row.original)}>
+              Do something
+            </ContextMenuItem>
+          </>
+        )}
+        onRowDoubleClick={(record) => {
+          console.log("Double-clicked:", record);
         }}
         busy={busy}
       />

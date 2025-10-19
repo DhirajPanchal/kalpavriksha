@@ -46,4 +46,5 @@ export interface GridSettingsSnapshot {
   rowsVisible?: 5 | 10 | 15 | 20 | 25;
   rowZebra?: boolean;
   rowLines?: boolean;
+  enableColumnHover?: boolean;
 }

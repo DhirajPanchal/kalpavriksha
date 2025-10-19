@@ -1,10 +1,16 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Table, flexRender } from "@tanstack/react-table";
+import { Row, Table, flexRender } from "@tanstack/react-table";
 import AdgHeaderRow from "./adg-header";
 import { GridSettingsSnapshot } from "./adg-types";
-
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { useState } from "react";
 type Align = "left" | "center" | "right";
 
 interface AdgGridProps<T> {
@@ -15,6 +21,10 @@ interface AdgGridProps<T> {
   defaultCellWrap?: string;
   visibleRows?: number;
   settings?: GridSettingsSnapshot;
+  rowContextMenu?: (
+    row: ReturnType<Table<T>["getRowModel"]>["rows"][number]
+  ) => React.ReactNode;
+  onRowDoubleClickRow?: (row: Row<T>) => void;
 }
 
 export default function AdgGrid<T>({
@@ -24,10 +34,12 @@ export default function AdgGrid<T>({
   defaultCellWrap = "single",
   visibleRows,
   settings,
+  rowContextMenu,
+  onRowDoubleClickRow,
 }: AdgGridProps<T>) {
-  console.log("settings :: ");
-  console.log(settings);
-
+  // console.log("settings :: ");
+  // console.log(settings);
+  const [hoverColId, setHoverColId] = useState<string | null>(null);
   const rows = table.getRowModel().rows;
 
   const tableWidth = table.getTotalSize();
@@ -53,9 +65,7 @@ export default function AdgGrid<T>({
   };
 
   const cellStyle = (index: number, selected: boolean = false) => {
-
     // console.log(index + " - " +selected);
-    
 
     // let compose: string = "";
     // if (settings?.rowZebra) {
@@ -113,94 +123,131 @@ export default function AdgGrid<T>({
             const vi = { index, key: row.id, start: index * rowHeightPx };
             const cellWrap = !(defaultCellWrap === "single");
             return (
-              <tr
-                key={vi.key}
-                data-index={vi.index}
-                style={{
-                  display: "table",
-                  width: tableWidth,
-                  tableLayout: "fixed",
-                  height: rowHeightPx,
-                  zIndex: 0,
-                  willChange: "transform",
-                  ...(!cellWrap && {
-                    position: "absolute",
-                    top: 0,
-                    transform: `translateY(${vi.start}px)`,
-                  }),
-                }}
-                className="group"
-              >
-                {row.getVisibleCells().map((cell) => {
-                  const meta: any = cell.column.columnDef.meta ?? {};
-                  const align: Align =
-                    meta.align ?? defaultAlignForType(meta.type);
-                  const wrap: string = meta.wrap ?? defaultCellWrap;
-                  const pinned = cell.column.getIsPinned();
+              <ContextMenu key={vi.key ?? row.id ?? `${row.id}-${vi.index}`}>
+                <ContextMenuTrigger asChild>
+                  <tr
+                    key={vi.key}
+                    data-index={vi.index}
+                    style={{
+                      display: "table",
+                      width: tableWidth,
+                      tableLayout: "fixed",
+                      height: rowHeightPx,
+                      zIndex: 0,
+                      willChange: "transform",
+                      ...(!cellWrap && {
+                        position: "absolute",
+                        top: 0,
+                        transform: `translateY(${vi.start}px)`,
+                      }),
+                    }}
+                    className="group"
+                    onDoubleClick={() => onRowDoubleClickRow?.(row)}
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      const meta: any = cell.column.columnDef.meta ?? {};
+                      const align: Align =
+                        meta.align ?? defaultAlignForType(meta.type);
+                      const wrap: string = meta.wrap ?? defaultCellWrap;
+                      const pinned = cell.column.getIsPinned();
 
-                  const rawValue = row.getValue(cell.column.id) as any;
-                  const text =
-                    typeof rawValue === "string"
-                      ? rawValue
-                      : String(rawValue ?? "");
+                      const rawValue = row.getValue(cell.column.id) as any;
+                      const text =
+                        typeof rawValue === "string"
+                          ? rawValue
+                          : String(rawValue ?? "");
 
-                  const content = (
-                    <div
-                      className={cn(
-                        "h-full w-full flex items-center min-w-0 overflow-hidden ",
-                        cellStyle(vi.index, row.getIsSelected())
-                      )}
-                    >
-                      {/* cellStyle(vi.index, row.getIsSelected()) */}
-                      <div
-                        className={cn(
-                          "flex-1 min-w-0 max-w-full overflow-hidden px-1",
-                          textAlignClass(align),
-                          wrapClass(wrap)
-                        )}
-                      >
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </div>
-                    </div>
-                  );
-
-                  return (
-                    <td
-                      key={cell.id}
-                      title={text}
-                      data-pinned={pinned ? "true" : "false"}
-                      style={{
-                        width: cell.column.getSize(),
-                        position: pinned ? ("sticky" as const) : undefined,
-                        left: pinned ? cell.column.getStart("left") : undefined,
-                        zIndex: pinned ? 140 : 10,
-                        height: rowHeightPx,
-                      }}
-                      className="relative align-middle p-0"
-                    >
-                      {pinned && (
+                      const content = (
                         <div
-                          aria-hidden
-                          className="pointer-events-none"
+                          className={cn(
+                            "h-full w-full flex items-center min-w-0 overflow-hidden ",
+                            cellStyle(vi.index, row.getIsSelected())
+                          )}
+                        >
+                          {/* cellStyle(vi.index, row.getIsSelected()) */}
+                          <div
+                            className={cn(
+                              "flex-1 min-w-0 max-w-full overflow-hidden px-1",
+                              textAlignClass(align),
+                              wrapClass(wrap)
+                            )}
+                          >
+                            {flexRender(
+                              cell.column.columnDef.cell,
+                              cell.getContext()
+                            )}
+                          </div>
+                        </div>
+                      );
+
+                      return (
+                        <td
+                          key={cell.id}
+                          title={text}
+                          data-pinned={pinned ? "true" : "false"}
                           style={{
-                            position: "absolute",
-                            top: 0,
-                            right: -MASK_W,
-                            width: MASK_W,
-                            height: "100%",
-                            background: "inherit",
-                            zIndex: 150,
+                            width: cell.column.getSize(),
+                            position: pinned ? ("sticky" as const) : undefined,
+                            left: pinned
+                              ? cell.column.getStart("left")
+                              : undefined,
+                            zIndex: pinned ? 140 : 10,
+                            height: rowHeightPx,
                           }}
-                        />
-                      )}
-                      {content}
-                    </td>
-                  );
-                })}
-              </tr>
+                          className={cn("relative align-middle p-0")}
+                          onMouseEnter={() => {
+                            if (settings?.enableColumnHover)
+                              setHoverColId(cell.column.id);
+                          }}
+                          onMouseLeave={() => {
+                            if (settings?.enableColumnHover)
+                              setHoverColId(null);
+                          }}
+                        >
+                          {settings?.enableColumnHover &&
+                            hoverColId === cell.column.id && (
+                              <div
+                                aria-hidden
+                                className="pointer-events-none absolute inset-0 z-20
+                                bg-black/5 dark:bg-white/10
+                                ring-1 ring-inset ring-black/5 dark:ring-white/10
+                                transition-colors duration-150"
+                              />
+                            )}
+                          {pinned && (
+                            <div
+                              aria-hidden
+                              className="pointer-events-none"
+                              style={{
+                                position: "absolute",
+                                top: 0,
+                                right: -MASK_W,
+                                width: MASK_W,
+                                height: "100%",
+                                background: "inherit",
+                                zIndex: 150,
+                              }}
+                            />
+                          )}
+                          {content}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                </ContextMenuTrigger>
+                <ContextMenuContent className="min-w-[220px]">
+                  <ContextMenuItem
+                    onClick={() => {
+                      console.log("Row data:", row.original);
+                    }}
+                  >
+                    Show Data
+                  </ContextMenuItem>
+                  {typeof rowContextMenu === "function"
+                    ? rowContextMenu(row)
+                    : null}
+                </ContextMenuContent>
+              </ContextMenu>
             );
           })}
         </tbody>
