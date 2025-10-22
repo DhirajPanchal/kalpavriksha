@@ -104,7 +104,18 @@ export default function AdgSettings<T>({
       ...draft,
       columns: draft.columns.map((c) => ({ ...c, pin: false })),
     });
-  const headerLabel = (id: string) => table.getColumn(id)?.columnDef.header;
+
+  const headerLabel = (id: string) => {
+    const col =
+      table
+        .getAllColumns()
+        .find(
+          (c) =>
+            c.id === id ||
+            ((c.columnDef as any)?.accessorKey as string | undefined) === id
+        ) ?? null;
+    return col?.columnDef.header ?? id;
+  };
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;

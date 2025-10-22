@@ -16,8 +16,14 @@ interface AdgPaginationProps<T> {
 export default function AdgPagination<T>(props: AdgPaginationProps<T>) {
   const { table } = props;
   const page = table.getState().pagination.pageIndex + 1;
+  //const pageCount = table.getPageCount();
+  //const totalRows = table.getPrePaginationRowModel().rows.length;
+
   const pageCount = table.getPageCount();
-  const totalRows = table.getPrePaginationRowModel().rows.length;
+  const totalRows =
+    (table.options.meta as any)?.totalRows ??
+    table.getPrePaginationRowModel().rows.length;
+
   const pageSize = table.getState().pagination.pageSize;
   const first = (page - 1) * pageSize + 1;
   const last = Math.min(page * pageSize, totalRows);

@@ -52,6 +52,22 @@ export interface GridSettingsSnapshot {
   enableColumnHover?: boolean;
 }
 
+export type AdgDataHandlingMode = "client" | "server";
+
+
+export type AdgExternalQuery = {
+  index: number; // page index (0-based)
+  size: number;  // page size
+  global: string | null;
+  sort: { field: string; order: "asc" | "desc" }[];
+  filters: Array<
+    | { field: string; operator: "LIKE"; value: string } // text
+    | { field: string; operator: "IN"; value: string[] } // enum
+    | { field: string; operator: "GT" | "LT" | "EQ"; value: number | string } // number/date single
+    | { field: string; operator: "RANGE"; from?: number | string; to?: number | string } // number/date range
+  >;
+};
+
 // Optional color configuration (Tailwind class strings).
 export type AdgColorConfig = {
   header: {

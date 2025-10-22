@@ -1,7 +1,12 @@
 "use client";
 
 import AdgDataGrid from "@/components/adg/adg-datagrid";
-import { BLUE_ADG_COLORS, FRUITY_ADG_COLORS, GRAY_ADG_COLORS, RED_ADG_COLORS } from "@/components/adg/adg-predefined";
+import {
+  BLUE_ADG_COLORS,
+  FRUITY_ADG_COLORS,
+  GRAY_ADG_COLORS,
+  RED_ADG_COLORS,
+} from "@/components/adg/adg-predefined";
 import { treasuryColumns } from "@/components/tdt/columns";
 import { sampleTreasuryDeals } from "@/components/tdt/data";
 import { TreasuryDealTicket } from "@/components/tdt/types";
@@ -10,6 +15,7 @@ import {
   ContextMenuSeparator,
 } from "@/components/ui/context-menu";
 import { LandmarkIcon } from "lucide-react";
+import React from "react";
 import { useState } from "react";
 
 const branding = (
@@ -32,13 +38,27 @@ export default function Page() {
     success: false,
   });
 
+  const [rows, setRows] = React.useState<any[]>([]);
+  const [total, setTotal] = React.useState(0);
+
+  const handleQuery = React.useCallback(async (q: any) => {
+    const res = await fetch("/api/adg/search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(q),
+    });
+    const data = await res.json();
+    setRows(data.rows);
+    setTotal(data.total);
+  }, []);
+
   function myFn(original: TreasuryDealTicket): void {
     console.log(original);
   }
 
   return (
     <div className="p-16">
-      <AdgDataGrid
+      {/* <AdgDataGrid
         data={sampleTreasuryDeals}
         columns={treasuryColumns()}
         initialSettings={{
@@ -67,7 +87,14 @@ export default function Page() {
           console.log("Double-clicked:", record);
         }}
         busy={busy}
+      /> */}
 
+      <AdgDataGrid
+        dataMode="server"
+        data={rows}
+        externalTotalRows={total}
+        onExternalQueryChange={handleQuery}
+        columns={treasuryColumns()}
       />
     </div>
   );
