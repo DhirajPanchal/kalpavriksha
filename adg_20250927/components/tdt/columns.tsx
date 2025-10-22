@@ -72,7 +72,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
         label: "Notional",
         widthKey: "M",
         type: "number",
-        filter: { kind: "number" },
+        filter: { kind: "number", mode:"single" },
       },
     },
 
@@ -86,7 +86,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
         label: "Rate",
         type: "number",
         widthKey: "S",
-        filter: { kind: "number" },
+        filter: { kind: "number", mode:"range" },
       },
     },
     {
@@ -126,7 +126,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
         label: "Trade Date",
         widthKey: "M",
         type: "date",
-        filter: { kind: "date" },
+        filter: { kind: "date", mode:"single" },
       },
     },
     {
@@ -134,7 +134,7 @@ export function treasuryColumns(): AdgColumnDef<TreasuryDealTicket>[] {
       header: "Value Date",
       enableSorting:false,
       cell: ({ row }) => fmtDate(row.original.valueDate),
-      meta: { label: "Value Date", widthKey: "M", type: "date" },
+      meta: { label: "Value Date", widthKey: "M", type: "date", filter: { kind: "date", mode:"range" }, },
     },
     {
       accessorKey: "desk",

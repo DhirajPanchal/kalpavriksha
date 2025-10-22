@@ -67,7 +67,7 @@ export default function Page() {
           console.log("Double-clicked:", record);
         }}
         busy={busy}
-        colorConfig={GRAY_ADG_COLORS}
+
       />
     </div>
   );

@@ -82,17 +82,18 @@ export function AdgFilter<T>({
   table: Table<T>;
   column: Column<T, unknown>;
   meta?: ColumnFilterMeta;
-  colors: AdgColorConfig
+  colors: AdgColorConfig;
 }) {
   const [open, setOpen] = React.useState(false);
   const kind = meta?.kind ?? "text";
+  const mode = meta?.mode ?? "both";
 
   const current = column.getFilterValue() as any;
   const initialDraft =
     kind === "enum"
       ? current ?? []
       : kind === "number" || kind === "date"
-      ? current ?? { mode: "range" }
+      ? current ?? { mode: mode === "single" ? "single" : "range" }
       : current ?? "";
 
   const [draft, setDraft] = React.useState<any>(initialDraft);
@@ -102,16 +103,19 @@ export function AdgFilter<T>({
   }, [open]); // keep in sync
 
   const apply = () => {
+    console.log(draft);
+
     column.setFilterValue(draft);
     table.resetPageIndex();
     setOpen(false);
   };
+
   const clear = () => {
     const cleared =
       kind === "enum"
         ? []
         : kind === "number" || kind === "date"
-        ? { mode: "range" }
+        ? { mode: mode === "single" ? "single" : "range" }
         : "";
     setDraft(cleared);
     column.setFilterValue(undefined);
@@ -123,7 +127,7 @@ export function AdgFilter<T>({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <button
-        className={cn("h-full w-full p-0", colors.header.filterHover)}
+          className={cn("h-full w-full p-0", colors.header.filterHover)}
           aria-label="Filter column"
           onClick={(e) => {
             e.stopPropagation();
@@ -132,12 +136,16 @@ export function AdgFilter<T>({
             e.stopPropagation();
           }}
         >
-         <Filter size={16} className={cn(colors.header.filterIconIdle)} />
+          <Filter size={16} className={cn(colors.header.filterIconIdle)} />
         </button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className={cn("w-full shadow-md rounded-lg ring-1", colors.popover.border, colors.popover.bg)}
+        className={cn(
+          "w-full shadow-md rounded-lg ring-1",
+          colors.popover.border,
+          colors.popover.bg
+        )}
         style={{ minWidth: "320px" }}
         onClick={(e) => e.stopPropagation()}
         onMouseDown={(e) => e.stopPropagation()}
@@ -194,29 +202,91 @@ export function AdgFilter<T>({
 
         {kind === "number" && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm">
-              <button
-                className={`px-2 py-1 rounded ${
-                  draft?.mode === "range"
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent"
-                }`}
-                onClick={() => setDraft({ ...draft, mode: "range" })}
-              >
-                Range
-              </button>
-              <button
-                className={`px-2 py-1 rounded ${
-                  draft?.mode === "single"
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent"
-                }`}
-                onClick={() => setDraft({ ...draft, mode: "single" })}
-              >
-                Single
-              </button>
-            </div>
-            {draft?.mode === "range" ? (
+            {mode === "both" && (
+              <div className="flex items-center gap-2 text-sm">
+                <button
+                  className={`px-2 py-1 rounded ${
+                    draft?.mode === "range"
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent"
+                  }`}
+                  onClick={() => setDraft({ ...draft, mode: "range" })}
+                >
+                  Range
+                </button>
+                <button
+                  className={`px-2 py-1 rounded ${
+                    draft?.mode === "single"
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent"
+                  }`}
+                  onClick={() => setDraft({ ...draft, mode: "single" })}
+                >
+                  Single
+                </button>
+              </div>
+            )}
+
+            {mode === "both" ? (
+              draft?.mode === "single" ? (
+                <div className="flex items-center gap-2">
+                  <select
+                    className="h-9 rounded-md border px-2"
+                    value={draft.op ?? "=="}
+                    onChange={(e) => setDraft({ ...draft, op: e.target.value })}
+                  >
+                    <option value=">">&gt;</option>
+                    <option value="==">=</option>
+                    <option value="<">&lt;</option>
+                  </select>
+                  <Input
+                    type="number"
+                    placeholder="value"
+                    value={draft.value ?? ""}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        value:
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    placeholder="min"
+                    value={draft.min ?? ""}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        min:
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value),
+                      })
+                    }
+                  />
+                  <Input
+                    type="number"
+                    placeholder="max"
+                    value={draft.max ?? ""}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        max:
+                          e.target.value === ""
+                            ? undefined
+                            : Number(e.target.value),
+                      })
+                    }
+                  />
+                </div>
+              )
+            ) : mode === "range" ? (
               <div className="flex items-center gap-2">
                 <Input
                   type="number"
@@ -285,29 +355,71 @@ export function AdgFilter<T>({
 
         {kind === "date" && (
           <div className="space-y-3">
-            <div className="flex items-center gap-2 text-sm">
-              <button
-                className={`px-2 py-1 rounded ${
-                  draft?.mode === "range"
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent"
-                }`}
-                onClick={() => setDraft({ ...draft, mode: "range" })}
-              >
-                Range
-              </button>
-              <button
-                className={`px-2 py-1 rounded ${
-                  draft?.mode === "single"
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent"
-                }`}
-                onClick={() => setDraft({ ...draft, mode: "single" })}
-              >
-                Single
-              </button>
-            </div>
-            {draft?.mode === "range" ? (
+            {mode === "both" && (
+              <div className="flex items-center gap-2 text-sm">
+                <button
+                  className={`px-2 py-1 rounded ${
+                    draft?.mode === "range"
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent"
+                  }`}
+                  onClick={() => setDraft({ ...draft, mode: "range" })}
+                >
+                  Range
+                </button>
+                <button
+                  className={`px-2 py-1 rounded ${
+                    draft?.mode === "single"
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent"
+                  }`}
+                  onClick={() => setDraft({ ...draft, mode: "single" })}
+                >
+                  Single
+                </button>
+              </div>
+            )}
+
+            {mode === "both" ? (
+              draft?.mode === "single" ? (
+                <div className="flex items-center gap-2">
+                  <select
+                    className="h-9 w-24 rounded-md border px-2"
+                    value={draft.op ?? "=="}
+                    onChange={(e) => setDraft({ ...draft, op: e.target.value })}
+                  >
+                    <option value=">">&gt;</option>
+                    <option value="==">=</option>
+                    <option value="<">&lt;</option>
+                  </select>
+                  <Input
+                    type="date"
+                    value={draft.value ?? ""}
+                    onChange={(e) =>
+                      setDraft({ ...draft, value: e.target.value || undefined })
+                    }
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="date"
+                    value={draft.from ?? ""}
+                    onChange={(e) =>
+                      setDraft({ ...draft, from: e.target.value || undefined })
+                    }
+                  />
+                  <span>to</span>
+                  <Input
+                    type="date"
+                    value={draft.to ?? ""}
+                    onChange={(e) =>
+                      setDraft({ ...draft, to: e.target.value || undefined })
+                    }
+                  />
+                </div>
+              )
+            ) : mode === "range" ? (
               <div className="flex items-center gap-2">
                 <Input
                   type="date"
@@ -328,7 +440,7 @@ export function AdgFilter<T>({
             ) : (
               <div className="flex items-center gap-2">
                 <select
-                  className="h-9 rounded-md border px-2"
+                  className="h-9 w-24 rounded-md border px-2"
                   value={draft.op ?? "=="}
                   onChange={(e) => setDraft({ ...draft, op: e.target.value })}
                 >

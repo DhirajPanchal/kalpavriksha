@@ -6,12 +6,15 @@ export type Density = "compact" | "medium" | "large";
 
 export type FilterKind = "text" | "number" | "enum" | "date";
 
+export type FilterMode = "single" | "range" | "both"; 
+
 export type AdgAlign = "left" | "center" | "right";
 
 export type AdgDataType = "string" | "number" | "enum" | "date";
 
 export interface ColumnFilterMeta {
   kind: FilterKind;
+  mode?: FilterMode;
   enumValues?: string[];
   placeholder?: string;
 }
