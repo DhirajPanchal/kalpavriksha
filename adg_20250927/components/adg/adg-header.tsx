@@ -30,6 +30,29 @@ export default function AdgHeaderRow<T>({
 
   const sortingState = table.getState().sorting;
 
+  // ===== NEW: derive filter order numbers from tanstack state =====
+  const columnFilters = table.getState().columnFilters ?? [];
+  // Helper: decide if a filter value is "active"
+  const isActiveFilter = (v: any) => {
+    if (v == null) return false;
+    if (typeof v === "string") return v.trim().length > 0;
+    if (Array.isArray(v)) return v.length > 0;
+    if (typeof v === "object") {
+      // number/date single: {mode:'single', op, value}
+      // number/date range:  {mode:'range', min/max or from/to}
+      const o = v as Record<string, any>;
+      const vals = ["value", "min", "max", "from", "to"]
+        .map((k) => o[k])
+        .filter((x) => x != null && `${x}` !== "");
+      return vals.length > 0;
+    }
+    return true;
+  };
+  const activeFilters = columnFilters.filter((f) => isActiveFilter(f.value));
+  const showFilterOrder = activeFilters.length > 1;
+  const filterOrderMap = new Map<string, number>();
+  activeFilters.forEach((f, idx) => filterOrderMap.set(f.id, idx + 1));
+
   return (
     <thead
       style={{
@@ -51,6 +74,7 @@ export default function AdgHeaderRow<T>({
 
             const col = header.column;
             const canSort = col.getCanSort();
+            const canFilter = col.getCanFilter();
             const sorted = col.getIsSorted() as false | "asc" | "desc";
             const filtered = col.getIsFiltered();
             const active = !!sorted || !!filtered;
@@ -58,6 +82,8 @@ export default function AdgHeaderRow<T>({
             const orderIndex = sortingState.findIndex((s) => s.id === col.id);
             const showOrderNum = sortingState.length > 1 && orderIndex >= 0;
             const orderNum = orderIndex + 1;
+
+            const filterMeta: any = header.column.columnDef.meta;
 
             return (
               <th
@@ -196,10 +222,35 @@ export default function AdgHeaderRow<T>({
                     </div>
                   )}
 
-                  {(() => {
-                    const m: any = header.column.columnDef.meta;
-                    if (!m?.filter) return null;
-                    return (
+                  {canFilter && (
+                    <div className="flex flex-col justify-center items-center min-w-[24px]">
+                      {filtered && (
+                        <div
+                          className={cn(
+                            "w-full flex items-center justify-center grow hover:bg-sky-100 cursor-pointer "
+                          )}
+                          onClick={() => {
+                            header.column.setFilterValue(undefined);
+                            table.resetPageIndex();
+                          }}
+                        >
+                          {showFilterOrder && (
+                            <span
+                              className={cn(
+                                "text-xs",
+                                colors.header.sortIconActive
+                              )}
+                            >
+                              {filterOrderMap.get(header.column.id)}
+                            </span>
+                          )}
+                          <X
+                            size={16}
+                            className={cn(colors.header.sortIconIdle)}
+                          />
+                        </div>
+                      )}
+
                       <div
                         className={cn(
                           "flex px-0.5 cursor-pointer min-w-[24px]",
@@ -208,14 +259,14 @@ export default function AdgHeaderRow<T>({
                         )}
                       >
                         <AdgFilter
-                          meta={m.filter}
+                          meta={filterMeta.filter}
                           column={header.column}
                           table={table}
                           colors={colors}
                         />
                       </div>
-                    );
-                  })()}
+                    </div>
+                  )}
                 </div>
               </th>
             );

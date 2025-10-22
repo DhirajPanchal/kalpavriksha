@@ -17,7 +17,7 @@ export const DENSITY_ROW_CLASS: Record<Density, string> = {
 export const DEFAULT_ADG_COLORS: AdgColorConfig = {
   header: {
     bgIdle: "bg-muted",
-    bgActive: "bg-accent",
+    bgActive: "bg-blue-100",
     text: "text-foreground",
     border: "border-border",
     borderActive: "border-b-primary",
